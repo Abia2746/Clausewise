@@ -18,11 +18,11 @@ st.set_page_config(
 if "audit_count" not in st.session_state:
     st.session_state.audit_count = 0
 
+# FIXED: Removed the light gray sidebar background rule to let native high contrast text work
 st.markdown(
     """
     <style>
     .stApp { background-color: #fbfcfa !important; color: #17212b !important; }
-    [data-testid="stSidebar"] { background-color: #f1f5f1 !important; border-right: 1px solid #e5e9e6 !important; }
     textarea, [data-testid="stTextArea"] textarea, input { background-color: #ffffff !important; border: 2px solid #185c4a !important; border-radius: 10px !important; color: #17212b !important; }
     .card-high { background-color: #fff0ec !important; border-left: 6px solid #c45b45 !important; padding: 20px !important; border-radius: 8px !important; color: #17212b !important; }
     .card-med { background-color: #fff4df !important; border-left: 6px solid #b87920 !important; padding: 20px !important; border-radius: 8px !important; color: #17212b !important; }
@@ -31,7 +31,6 @@ st.markdown(
     .tier-box { background: white; border: 2px solid #e5e9e6; border-radius: 12px; padding: 15px; text-align: center; color: #17212b; }
     .checkout-box { background-color: #ffffff !important; border: 2px solid #e5e9e6 !important; border-radius: 12px !important; padding: 24px !important; }
     
-    /* HIGH-CONTRAST SECURE PAY BUTTON STYLE */
     div.stButton > button:first-child {
         background-color: #185c4a !important;
         color: #ffffff !important;
@@ -45,17 +44,24 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.sidebar.title("◈ Clausewise")
+# Sidebar Main Headers
+st.sidebar.markdown("# ◈ Clausewise")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 👤 Account Center")
 st.sidebar.markdown("📈 Current Plan: **Free Trial**")
-st.sidebar.markdown("⚡ Usage: **0/1 Free Audit Used**" if st.session_state.audit_count == 0 else "⚡ Usage: **1/1 Limit Reached**")
+if st.session_state.audit_count == 0:
+    st.sidebar.markdown("⚡ Usage: **0 / 1 Free Audit Used**")
+else:
+    st.sidebar.markdown("⚡ Usage: **1 / 1 Limit Reached**")
+
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 💎 Quick Upgrades")
 st.sidebar.markdown("🎟️ Single Scan: **£9**")
 st.sidebar.markdown("🚀 Membership: **£49/mo**")
-st.sidebar.info("✨ Engine Verified")
+st.sidebar.markdown("---")
+st.sidebar.markdown("🟢 *Engine Verification Active*")
 
+# Main Desk Headers
 st.title("Automate Your Contract Risk Reviews")
 st.caption("Identify hidden liabilities, dangerous clauses, and predatory fee adjustments instantly.")
 
@@ -102,7 +108,6 @@ if st.button("Audit Contract", type="primary"):
             with st.container():
                 st.markdown('<div class="checkout-box"><h4 style="margin:0 0 15px 0; color:#17212b;">💳 Premium Stripe Payment Gateway</h4>', unsafe_allow_html=True)
                 
-                # FIXED: Clear bold labeling right above the text boxes
                 st.markdown("<p style='color:#17212b; margin: 10px 0 2px 0; font-weight:600; font-size:0.9rem;'>Cardholder Full Name</p>", unsafe_allow_html=True)
                 st.text_input("Name Label Hidden", placeholder="e.g. Abia...", label_visibility="collapsed")
                 
@@ -128,7 +133,7 @@ if st.button("Audit Contract", type="primary"):
                     <div class="card-med">
                         <h3 style="color:#b87920; margin:0 0 8px 0; font-weight:800;">⚠️ MEDIUM RISK: UNILATERAL PRICE INDEXATION</h3>
                         <strong>Issue:</strong> Uncapped operational maintenance fee allocations at vendor's sole discretion.<br><br>
-                        <strong>Why It Matters:</strong> The drafting allows the seller to alter pricing metrics annually without tying the adjustments to an objective economic scale or providing an equitable termination framework.
+                        <strong>Why It Matters:</strong> Theft drafting allows the seller to alter pricing metrics annually without tying the adjustments to an objective economic scale or providing an equitable termination framework.
                         <br><br><strong>Suggested Action:</strong> Restrict cost adjustments by hard-linking indexation patterns directly to the UK Consumer Price Index (CPI) and add a mandatory 30-day structural contract wind-down window.
                     </div>
                     """,
