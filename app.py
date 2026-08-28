@@ -30,6 +30,16 @@ st.markdown(
     .tier-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
     .tier-box { background: white; border: 2px solid #e5e9e6; border-radius: 12px; padding: 15px; text-align: center; color: #17212b; }
     .checkout-box { background-color: #ffffff !important; border: 2px solid #e5e9e6 !important; border-radius: 12px !important; padding: 24px !important; }
+    
+    /* HIGH-CONTRAST SECURE PAY BUTTON STYLE */
+    div.stButton > button:first-child {
+        background-color: #185c4a !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border: none !important;
+        padding: 12px 24px !important;
+        border-radius: 8px !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -90,9 +100,16 @@ if st.button("Audit Contract", type="primary"):
                 unsafe_allow_html=True,
             )
             with st.container():
-                st.markdown('<div class="checkout-box"><strong>Core Stripe Payment Gateway</strong>', unsafe_allow_html=True)
-                st.text_input("Cardholder Name Details", placeholder="Abia...")
-                st.text_input("Secure Card Number Input", placeholder="4000 1234 5678 9010")
+                st.markdown('<div class="checkout-box"><h4 style="margin:0 0 15px 0; color:#17212b;">💳 Premium Stripe Payment Gateway</h4>', unsafe_allow_html=True)
+                
+                # FIXED: Clear bold labeling right above the text boxes
+                st.markdown("<p style='color:#17212b; margin: 10px 0 2px 0; font-weight:600; font-size:0.9rem;'>Cardholder Full Name</p>", unsafe_allow_html=True)
+                st.text_input("Name Label Hidden", placeholder="e.g. Abia...", label_visibility="collapsed")
+                
+                st.markdown("<p style='color:#17212b; margin: 15px 0 2px 0; font-weight:600; font-size:0.9rem;'>Card Number</p>", unsafe_allow_html=True)
+                st.text_input("Number Label Hidden", placeholder="4000 1234 5678 9010", label_visibility="collapsed")
+                
+                st.markdown("<br>", unsafe_allow_html=True)
                 st.button("✨ Complete Secure Payment (Monzo Router Link)", use_container_width=True)
                 st.markdown('</div>', unsafe_allow_html=True)
         else:
