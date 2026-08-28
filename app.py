@@ -18,20 +18,18 @@ st.set_page_config(
 if "audit_count" not in st.session_state:
     st.session_state.audit_count = 0
 
-# FORCE CORPORATE LUXURY LIGHT THEME WITH DYNAMIC FINDING CARDS
+# LUXURY THEME STYLING
 st.markdown(
     """
     <style>
     @import url('https://googleapis.com');
 
-    /* Lock the theme to clean premium light background */
     .stApp {
         background-color: #fbfcfa !important;
         color: #17212b !important;
         font-family: 'DM Sans', sans-serif;
     }
 
-    /* Professional Sidebar Panel */
     [data-testid="stSidebar"] {
         background-color: #f1f5f1 !important;
         border-right: 1px solid #e5e9e6 !important;
@@ -47,7 +45,7 @@ st.markdown(
         display: flex;
         align-items: center;
         gap: 0.7rem;
-        margin-bottom: 2.2rem;
+        margin-bottom: 1.5rem;
         margin-top: 1rem;
     }
 
@@ -94,7 +92,6 @@ st.markdown(
         margin-bottom: 2rem;
     }
 
-    /* Premium Container for Input */
     .input-shell {
         background: white !important;
         border: 1px solid #e5e9e6 !important;
@@ -104,7 +101,6 @@ st.markdown(
         margin-bottom: 1.5rem !important;
     }
 
-    /* Fixed Visible Input Box */
     textarea, [data-testid="stTextArea"] textarea {
         background-color: #f4f6f5 !important;
         border: 1px solid #d1d8d4 !important;
@@ -113,7 +109,25 @@ st.markdown(
         font-size: 1rem !important;
     }
 
-    /* 10/10 PREMIUM COLOR CARDS */
+    /* Fixed Radio Options Style */
+    [data-testid="stRadio"] div[role="radiogroup"] {
+        gap: 1.5rem !important;
+        margin-bottom: 1rem;
+    }
+    [data-testid="stRadio"] div[role="radiogroup"] label p {
+        font-weight: 600 !important;
+        color: #185c4a !important;
+    }
+
+    /* Premium File Uploader Card Box */
+    [data-testid="stFileUploader"] {
+        background-color: #f4f6f5 !important;
+        border: 2px dashed #d1d8d4 !important;
+        border-radius: 12px !important;
+        padding: 1rem !important;
+    }
+
+    /* PREMIUM VISUAL RESULTS CARDS */
     .card-high {
         background-color: #fff0ec !important;
         border-left: 6px solid #c45b45 !important;
@@ -143,12 +157,33 @@ st.markdown(
     }
     .paywall-card * { color: white !important; }
 
+    /* MULTI-TIER PLAN CARDS */
+    .tier-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin: 15px 0;
+    }
+    .tier-box {
+        background: white;
+        border: 2px solid #e5e9e6;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        color: #17212b;
+    }
+    .tier-box-active {
+        border-color: #185c4a;
+        background: #e4f1eb;
+    }
+
     .checkout-box {
         background-color: #f4f6f5 !important;
         border: 1px solid #d1d8d4 !important;
         border-radius: 12px !important;
         padding: 24px !important;
-        margin-top: 20px !important;
+        margin-top: 10px !important;
     }
     .checkout-box input {
         background-color: white !important;
@@ -160,7 +195,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Render Custom Branded Sidebar
+# SIDEBAR ARCHITECTURE BRAND CENTRE
 st.sidebar.markdown(
     """
     <div class="brand">
@@ -171,17 +206,43 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 st.sidebar.markdown("---")
+
+# Organized Sidebar Account Center Features
+st.sidebar.markdown("### 👤 Account Space")
+st.sidebar.markdown("📈 Account Type: **Free Tier Plan**")
+st.sidebar.markdown("⚡ Scanning Usage: **0 / 1 Free Audit Completed**" if st.session_state.audit_count == 0 else "⚡ Scanning Usage: **1 / 1 Limit Reached**")
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 💎 Available Upgrades")
+st.sidebar.markdown("🎟️ Single Document Scan: **£9**")
+st.sidebar.markdown("🚀 Unlimited Membership: **£49/mo**")
+st.sidebar.markdown("---")
 st.sidebar.info("✨ Premium Enterprise Engine Verified")
 
-# Main Header Elements
+# MAIN DESK DISPLAY
 st.markdown('<div class="eyebrow">AI COMPLIANCE AUDITOR</div>', unsafe_allow_html=True)
 st.markdown('<h1 class="hero-title">Automate Your Contract Risk Reviews</h1>', unsafe_allow_html=True)
 st.markdown('<p class="hero-copy">Identify hidden liabilities, dangerous clauses, and predatory fee adjustments instantly.</p>', unsafe_allow_html=True)
 
-# Wrap Input in Style Container
+# MULTI-INPUT TYPE RADIO SELECTION SHELL
 st.markdown('<div class="input-shell">', unsafe_allow_html=True)
-clause_text = st.text_area("Paste the contract clause you want to review here:", height=160)
+input_mode = st.radio("Choose Input Method:", ["📋 Paste Text Clause", "📁 Upload Contract File (.pdf, .txt)"])
+
+clause_text = ""
+if input_mode == "📋 Paste Text Clause":
+    clause_text = st.text_area("Paste the contract clause you want to review here:", height=160)
+else:
+    uploaded_file = st.file_uploader("Select contract document file text archive:", type=["txt", "pdf"])
+    if uploaded_file is not None:
+        if uploaded_file.name.endswith(".pdf"):
+            pdf_reader = PdfReader(BytesIO(uploaded_file.read()))
+            clause_text = "".join([page.extract_text() for page in pdf_reader.pages])
+        else:
+            clause_text = uploaded_file.read().decode("utf-8")
 st.markdown('</div>', unsafe_allow_html=True)
+
+# Explicit free limit announcement label
+st.markdown("<p style='color:#6f7d86; font-size:0.9rem; margin-bottom:5px;'>🎁 <b>Account Policy:</b> Each user session receives 1 free legal scan before lock.</p>", unsafe_allow_html=True)
 
 if st.button("Audit Contract", type="primary"):
     if not clause_text.strip():
@@ -191,40 +252,34 @@ if st.button("Audit Contract", type="primary"):
             st.markdown(
                 """
                 <div class="paywall-card">
-                    <h2 style="margin:0; font-weight:800; font-family:'Manrope';">🔒 Unlock Unlimited Legal Audits</h2>
-                    <p style="margin:10px 0 0 0; opacity:0.9; font-size:1rem;">You have used your 1 free scan for this session. Subscribe now to audit full multi-page contracts, check for IR35 compliance, and export downloadable law reports.</p>
+                    <h2 style="margin:0; font-weight:800; font-family:'Manrope';">🔒 Free Scan Limit Reached</h2>
+                    <p style="margin:10px 0 0 0; opacity:0.9; font-size:1rem;">You have exhausted your single complimentary audit block. Select an option below to securely process the document infrastructure.</p>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
+            
+            # MULTI-TIER PLAN GRID BOXES (Pay-per-scan vs Membership)
+            st.markdown(
+                """
+                <div class="tier-container">
+                    <div class="tier-box">
+                        <h4 style="margin:0; color:#185c4a;">🎟️ Single Token Scan</h4>
+                        <p style="margin:5px 0 0 0; font-size:1.2rem; font-weight:800;">£9 <span style="font-size:0.8rem; font-weight:400;">/ file</span></p>
+                        <small style="color:gray;">Best for casual users</small>
+                    </div>
+                    <div class="tier-box" style="border-color:#185c4a; background:#e4f1eb;">
+                        <h4 style="margin:0; color:#185c4a;">🚀 Unlimited Membership</h4>
+                        <p style="margin:5px 0 0 0; font-size:1.2rem; font-weight:800;">£49 <span style="font-size:0.8rem; font-weight:400;">/ month</span></p>
+                        <small style="color:#185c4a; font-weight:600;">Best value for contractors</small>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            
             with st.container():
-                st.markdown('<div class="checkout-box"><strong style="color:#17212b; font-size:1.1rem;">💳 Premium Checkout Gateway (£49/Month)</strong><br><br>', unsafe_allow_html=True)
+                st.markdown('<div class="checkout-box"><strong style="color:#17212b; font-size:1.1rem;">💳 Premium Stripe Payment Gateway</strong><br><br>', unsafe_allow_html=True)
                 st.text_input("Cardholder Full Name", placeholder="Abia...")
                 st.text_input("Card Number", placeholder="4000 1234 5678 9010")
-                st.button("✨ Subscribe & Pay via Monzo Secure Checkout", use_container_width=True)
-                st.markdown('<center><small style="color:gray; display:block; margin-top:10px;">🔒 Monzo Protected Secure Checkout</small></center>', unsafe_allow_html=True)
-                st.markdown('</div>', unsafe_allow_html=True)
-        else:
-            st.session_state.audit_count += 1
-            with st.spinner("Analyzing text layout architecture using Gemini..."):
-                st.markdown("### 📊 CLAUSEWISE COMPLIANCE REPORT")
-                st.info(f"Verified: {len(clause_text)} characters safely analyzed.")
-                
-                st.markdown(
-                    """
-                    <div class="card-high">
-                        <h3 style="color:#c45b45; margin:0 0 8px 0; font-weight:800; font-family:'Manrope';">🚨 CRITICAL RISK: CROSS-OVER INDEMNITY LOOPHOLE</h3>
-                        <strong>Issue:</strong> Weak protective framing with 'notwithstanding' override language.<br><br>
-                        <strong>Why It Matters:</strong> Using the term 'protect' instead of standard indemnification phrasing leaves legal costs completely exposed. Furthermore, the keyword 'notwithstanding' overrides general contract breaches, capping your maximum legal recourse at a mere £50,000 even if the counterparty defaults entirely.
-                        <br><br><strong>Suggested Action:</strong> Delete 'protect' and insert mandatory corporate text: <i>'defend, indemnify, and hold harmless'</i>. Remove the 'notwithstanding' cap to keep general contract breaches separate from IP litigation.
-                    </div>
-                    
-                    <div class="card-med">
-                        <h3 style="color:#b87920; margin:0 0 8px 0; font-weight:800; font-family:'Manrope';">⚠️ MEDIUM RISK: UNILATERAL PRICE INDEXATION</h3>
-                        <strong>Issue:</strong> Uncapped operational maintenance fee allocations at vendor's sole discretion.<br><br>
-                        <strong>Why It Matters:</strong> The drafting allows the seller to alter pricing metrics annually without tying the adjustments to an objective economic scale or providing an equitable termination framework.
-                        <br><br><strong>Suggested Action:</strong> Restrict cost adjustments by hard-linking indexation patterns directly to the UK Consumer Price Index (CPI) and add a mandatory 30-day structural contract wind-down window.
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+                st.button("✨ Complete Secure Payment (Monzo Router)", use_container_width=True)
