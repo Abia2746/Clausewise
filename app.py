@@ -18,19 +18,29 @@ st.set_page_config(
 if "audit_count" not in st.session_state:
     st.session_state.audit_count = 0
 
+# BRUTE FORCE VISIBILITY LOCK
 st.markdown(
     """
     <style>
     .stApp { background-color: #fbfcfa !important; color: #17212b !important; }
-    [data-testid="stSidebar"] { background-color: #f1f5f1 !important; border-right: 1px solid #e5e9e6 !important; }
+    
+    /* 10/10 FIX: Brute-force every single text layer in the sidebar to stay dark charcoal */
+    [data-testid="stSidebar"], [data-testid="stSidebar"] *, [data-testid="stSidebar"] p, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] span {
+        color: #17212b !important;
+        -webkit-text-fill-color: #17212b !important;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #f1f5f1 !important;
+        border-right: 1px solid #e5e9e6 !important;
+    }
+    
     textarea, [data-testid="stTextArea"] textarea, input { background-color: #ffffff !important; border: 2px solid #185c4a !important; border-radius: 10px !important; color: #17212b !important; }
     .card-high { background-color: #fff0ec !important; border-left: 6px solid #c45b45 !important; padding: 20px !important; border-radius: 8px !important; color: #17212b !important; }
     .card-med { background-color: #fff4df !important; border-left: 6px solid #b87920 !important; padding: 20px !important; border-radius: 8px !important; color: #17212b !important; }
     .paywall-card { background: linear-gradient(135deg, #143f35 0%, #1d6a55 100%) !important; border-radius: 16px !important; padding: 24px !important; color: white !important; }
+    .tier-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
+    .tier-box { background: white; border: 2px solid #e5e9e6; border-radius: 12px; padding: 15px; text-align: center; color: #17212b; }
     .checkout-box { background-color: #ffffff !important; border: 2px solid #e5e9e6 !important; border-radius: 12px !important; padding: 24px !important; }
-    
-    /* 10/10 POLISH: Make choice selector look like clean premium badges */
-    [data-testid="stRadio"] > div { gap: 1rem !important; }
     
     div.stButton > button:first-child {
         background-color: #185c4a !important;
@@ -45,17 +55,24 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.sidebar.title("◈ Clausewise")
+# Sidebar Text Structure
+st.sidebar.markdown("# ◈ Clausewise")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 👤 Account Center")
 st.sidebar.markdown("📈 Current Plan: **Free Trial**")
-st.sidebar.markdown("⚡ Usage: **0/1 Free Audit Used**" if st.session_state.audit_count == 0 else "⚡ Usage: **1/1 Limit Reached**")
+if st.session_state.audit_count == 0:
+    st.sidebar.markdown("⚡ Usage: **0 / 1 Free Audit Used**")
+else:
+    st.sidebar.markdown("⚡ Usage: **1 / 1 Limit Reached**")
+
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 💎 Quick Upgrades")
 st.sidebar.markdown("🎟️ Single Scan: **£9**")
 st.sidebar.markdown("🚀 Membership: **£49/mo**")
-st.sidebar.info("✨ Engine Verified")
+st.sidebar.markdown("---")
+st.sidebar.markdown("🟢 *Engine Verification Active*")
 
+# Main Page Text Structure
 st.title("Automate Your Contract Risk Reviews")
 st.caption("Identify hidden liabilities, dangerous clauses, and predatory fee adjustments instantly.")
 
@@ -75,10 +92,8 @@ else:
 
 st.markdown("<small style='color:gray;'>🎁 <b>Policy:</b> Each user session receives 1 free legal scan before lock center activation.</small>", unsafe_allow_html=True)
 
-# Tracks bypass confirmation status
 bypass_granted = False
 
-# Render the checkout fields in the main layout stream if locked
 if st.session_state.audit_count >= 1:
     st.markdown(
         """
@@ -93,7 +108,6 @@ if st.session_state.audit_count >= 1:
     with st.container():
         st.markdown('<div class="checkout-box"><h4 style="margin:0 0 15px 0; color:#17212b;">💳 Premium Stripe Payment Gateway</h4>', unsafe_allow_html=True)
         
-        # FIXED INTERACTIVE GLITCH: Real option picker selector
         payment_tier = st.radio("Select Payment Package:", ["🎟️ Single Token Scan (£9)", "🚀 Unlimited Monthly Membership (£49/mo)"])
         
         st.markdown("<p style='color:#17212b; margin: 15px 0 2px 0; font-weight:600; font-size:0.9rem;'>Cardholder Full Name</p>", unsafe_allow_html=True)
@@ -102,7 +116,6 @@ if st.session_state.audit_count >= 1:
         st.markdown("<p style='color:#17212b; margin: 15px 0 2px 0; font-weight:600; font-size:0.9rem;'>Card Number</p>", unsafe_allow_html=True)
         st.text_input("Number Label Hidden", placeholder="4000 1234 5678 9010", label_visibility="collapsed")
         
-        # Dynamic interactive checkout button text changes instantly based on selection
         button_label = "✨ Subscribe & Pay £49/mo" if "Unlimited" in payment_tier else "✨ Complete Single Payment (£9)"
         
         st.markdown("<br>", unsafe_allow_html=True)
@@ -115,12 +128,10 @@ if st.session_state.audit_count >= 1:
                 bypass_granted = True
         st.markdown('</div>', unsafe_allow_html=True)
 
-# Main Processing Loop Trigger Button
 if st.button("Audit Contract", type="primary") or bypass_granted:
     if not clause_text.strip():
         st.warning("Please insert contract text before executing an audit.")
     else:
-        # Check if user needs to be blocked (unless owner master key is triggered)
         if st.session_state.audit_count >= 1 and not bypass_granted:
             st.error("Action Blocked. Please execute the secure payment checkout above to continue.")
         else:
