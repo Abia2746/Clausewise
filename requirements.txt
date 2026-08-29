@@ -1,4 +1,5 @@
 streamlit
-pypdf
 google-genai
-google-generativeai
+pandas
+python-docx
+pypdf
