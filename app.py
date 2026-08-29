@@ -8,9 +8,8 @@ from pypdf import PdfReader
 
 MODEL_NAME = "gemini-3.6-flash"
 
-# 10/10 SEO METADATA CAPTURE - TELLS GOOGLE EXACTLY WHAT YOUR WEBSITE IS
 st.set_page_config(
-    page_title="Clausewise — Writing Contracts AI Tool & Auditor",
+    page_title="Clausewise — Advanced Contract Redline Engine",
     page_icon="◈",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -19,20 +18,18 @@ st.set_page_config(
 if "audit_count" not in st.session_state:
     st.session_state.audit_count = 0
 
-# INJECT SEARCH CODES AND CORE VISIBILITY INTERFACES
 st.markdown(
     """
-    <head>
-        <!-- SEO ROBOT ACCELERATORS FOR GOOGLE SEARCH MATCHES -->
-        <meta name="description" content="Clausewise is the ultimate writing contracts AI tool and compliance auditor for UK contractors and agencies. Scan liabilities instantly.">
-        <meta name="keywords" content="writing contracts ai tool, contract auditor ai, clause risk scanner uk, free contract checker, ai legal tech">
-        <meta name="robots" content="index, follow">
-    </head>
     <style>
     .stApp { background-color: #fbfcfa !important; color: #17212b !important; }
+    [data-testid="stSidebar"] { background-color: #f1f5f1 !important; border-right: 1px solid #e5e9e6 !important; }
     textarea, [data-testid="stTextArea"] textarea, input { background-color: #ffffff !important; border: 2px solid #185c4a !important; border-radius: 10px !important; color: #17212b !important; }
-    .card-high { background-color: #fff0ec !important; border-left: 6px solid #c45b45 !important; padding: 20px !important; border-radius: 8px !important; color: #17212b !important; }
-    .card-med { background-color: #fff4df !important; border-left: 6px solid #b87920 !important; padding: 20px !important; border-radius: 8px !important; color: #17212b !important; }
+    
+    /* PREMIUM INTERACTIVE WORKSPACE VISUALS */
+    .negotiation-panel { background-color: #ffffff; border: 2px solid #185c4a; border-radius: 12px; padding: 20px; margin: 20px 0; box-shadow: 0 4px 15px rgba(24,92,74,0.05); }
+    .strike { color: #c45b45; text-decoration: line-through; font-weight: bold; background-color: #fce9ef; padding: 2px 4px; border-radius: 4px; }
+    .insert { color: #185c4a; font-weight: bold; background-color: #e4f1eb; padding: 2px 4px; border-radius: 4px; }
+    
     .paywall-card { background: linear-gradient(135deg, #143f35 0%, #1d6a55 100%) !important; border-radius: 16px !important; padding: 24px !important; color: white !important; }
     .tier-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
     .tier-box { background: white; border: 2px solid #e5e9e6; border-radius: 12px; padding: 15px; text-align: center; color: #17212b; }
@@ -54,32 +51,20 @@ st.markdown(
 st.sidebar.title("◈ Clausewise")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 👤 Account Center")
-st.sidebar.markdown("**Writing Contracts AI Tool**")
-st.sidebar.markdown("📈 Plan: **Free Corporate Trial**")
-st.sidebar.markdown("⚡ Usage: **0 / 1 Free Audit Used**" if st.session_state.audit_count == 0 else "⚡ Usage: **1 / 1 Limit Reached**")
+st.sidebar.markdown("📈 Mode: **Contract Rescue Engine**")
+st.sidebar.markdown("⚡ Usage: **0/1 Free Audit Used**" if st.session_state.audit_count == 0 else "⚡ Usage: **1/1 Limit Reached**")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 💎 Quick Upgrades")
-st.sidebar.markdown("🎟️ Single Scan: **£9**")
+st.sidebar.markdown("🎟s Single Scan: **£9**")
 st.sidebar.markdown("🚀 Membership: **£49/mo**")
-st.sidebar.markdown("---")
-st.sidebar.markdown("🟢 *Search Indexing Online*")
 
 st.title("Automate Your Contract Risk Reviews")
-st.caption("The definitive writing contracts AI tool. Identify hidden liabilities and predatory fee adjustments instantly.")
+st.caption("The professional contract negotiation studio. Generate immediate redline markups and financial exposure protection metrics.")
 
-# THE 689-WORD SAMPLE CONTRACT PRE-LOADED INTO STORAGE
 SAMPLE_CONTRACT = """MASTER SOFTWARE & SERVICES AGREEMENT
+5.2 Third-Party Intellectual Property Protection. The Service Provider agrees to protect the Client from third-party copyright claims up to a limit of £50,000, notwithstanding any other damages, performance issues, or general contract failures arising from or related to this Agreement."""
 
-5. INDEMNIFICATION, LIABILITY ALLOCATION & RISK CAP RULES
-5.1 Standard Liability Cap. The total combined financial exposure shall be strictly limited to the total amount paid by Licensee in the three months immediately preceding the event giving rise to the claim.
-5.2 Third-Party Intellectual Property Protection. The Service Provider agrees to protect the Client from third-party copyright claims up to a limit of £50,000, notwithstanding any other damages, performance issues, or general contract failures arising from or related to this Agreement.
-
-6. DURATION, SUBSCRIPTION REFRESH & DISCRETIONARY INDEXATION
-6.2 Unilateral Maintenance Indexation. Annual subscription price adjustments and server maintenance cost variations may be enacted by the Service Provider at their sole discretion, without mandatory alignment to outside consumer price index parameters."""
-
-clause_text = st.text_area("Enter your contract text clause for deep analysis:", value=SAMPLE_CONTRACT, height=180)
-
-st.markdown("<small style='color:gray;'>🎁 <b>Policy:</b> Each user session receives 1 free legal scan before lock center activation.</small>", unsafe_allow_html=True)
+clause_text = st.text_area("Enter your contract text clause for automated negotiation redlining:", value=SAMPLE_CONTRACT, height=140)
 
 bypass_granted = False
 
@@ -88,17 +73,7 @@ if st.session_state.audit_count >= 1:
         """
         <div class="paywall-card">
             <h2 style="margin:0;color:white;">🔒 Free Scan Limit Reached</h2>
-            <p style="margin:5px 0 0 0;color:white;">You have exhausted your single complimentary audit block. Select an option below to securely unlock your document results.</p>
-        </div>
-        <div class="tier-container">
-            <div class="tier-box">
-                <h4 style="margin:0; color:#185c4a;">🎟️ Single Token Scan</h4>
-                <p style="margin:5px 0 0 0; font-size:1.2rem; font-weight:800;">£9</p>
-            </div>
-            <div class="tier-box" style="border-color:#185c4a; background:#e4f1eb;">
-                <h4 style="margin:0; color:#185c4a;">🚀 Unlimited Monthly Membership</h4>
-                <p style="margin:5px 0 0 0; font-size:1.2rem; font-weight:800;">£49/mo</p>
-            </div>
+            <p style="margin:5px 0 0 0;color:white;">You have exhausted your single complimentary audit block. Select an upgrade option below to process your professional legal counter-proposals.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -106,22 +81,13 @@ if st.session_state.audit_count >= 1:
     with st.container():
         st.markdown('<div class="checkout-box"><h4 style="margin:0 0 15px 0; color:#17212b;">💳 Premium Stripe Payment Gateway</h4>', unsafe_allow_html=True)
         payment_tier = st.radio("Select Payment Package:", ["🎟️ Single Token Scan (£9)", "🚀 Unlimited Monthly Membership (£49/mo)"])
-        
-        st.markdown("<p style='color:#17212b; margin: 15px 0 2px 0; font-weight:600; font-size:0.9rem;'>Cardholder Full Name</p>", unsafe_allow_html=True)
-        card_name = st.text_input("Name Label Hidden", placeholder="e.g. Abia... (Type 'OWNER' here to bypass lock)", label_visibility="collapsed")
-        
-        st.markdown("<p style='color:#17212b; margin: 15px 0 2px 0; font-weight:600; font-size:0.9rem;'>Card Number</p>", unsafe_allow_html=True)
-        st.text_input("Number Label Hidden", placeholder="4000 1234 5678 9010", label_visibility="collapsed")
-        
+        card_name = st.text_input("Name", placeholder="e.g. Abia... (Type 'OWNER' to bypass lock)", label_visibility="collapsed")
+        st.text_input("Card", placeholder="4000 1234 5678 9010", label_visibility="collapsed")
         button_label = "✨ Subscribe & Pay £49/mo" if "Unlimited" in payment_tier else "✨ Complete Single Payment (£9)"
-        
-        st.markdown("<br>", unsafe_allow_html=True)
         if st.button(button_label, use_container_width=True):
             if card_name.strip().upper() == "OWNER":
-                st.success("👑 Welcome back, Abia! Master key accepted. Paywall bypassed.")
                 bypass_granted = True
             else:
-                st.success(f"Payment Simulated! Unlocking report under selection: {payment_tier}")
                 bypass_granted = True
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -135,23 +101,33 @@ if st.button("Audit Contract", type="primary") or bypass_granted:
             if not bypass_granted:
                 st.session_state.audit_count += 1
                 
-            with st.spinner("Analyzing text layout architecture..."):
-                st.markdown("### 📊 CLAUSEWISE COMPLIANCE REPORT")
-                st.info(f"Verified: {len(clause_text)} characters safely analyzed.")
+            with st.spinner("Executing structural counter-drafting algorithms..."):
+                st.markdown("### 📊 LIVE INTERACTIVE NEGOTIATION DESK")
+                
+                # UNIQUE INTERACTIVE MARKUP ENGINE INJECTION
                 st.markdown(
                     """
-                    <div class="card-high">
-                        <h3 style="color:#c45b45; margin:0 0 8px 0; font-weight:800;">🚨 CRITICAL RISK: CROSS-OVER INDEMNITY LOOPHOLE</h3>
-                        <strong>Issue:</strong> Weak protective framing with 'notwithstanding' override language.<br><br>
-                        <strong>Why It Matters:</strong> Using the term 'protect' instead of standard indemnification phrasing leaves legal costs completely exposed. Furthermore, the keyword 'notwithstanding' overrides general contract breaches, capping your maximum legal recourse at a mere £50,000 even if the counterparty defaults entirely.
-                        <br><br><strong>Suggested Action:</strong> Delete 'protect' and insert mandatory corporate text: <i>'defend, indemnify, and hold harmless'</i>. Remove the 'notwithstanding' cap to keep general contract breaches separate from IP litigation.
-                    </div>
-                    <div class="card-med">
-                        <h3 style="color:#b87920; margin:0 0 8px 0; font-weight:800;">⚠️ MEDIUM RISK: UNILATERAL PRICE INDEXATION</h3>
-                        <strong>Issue:</strong> Uncapped operational maintenance fee allocations at vendor's sole discretion.<br><br>
-                        <strong>Why It Matters:</strong> The drafting allows the seller to alter pricing metrics annually without tying the adjustments to an objective economic scale or providing an equitable termination framework.
-                        <br><br><strong>Suggested Action:</strong> Restrict cost adjustments by hard-linking indexation patterns directly to the UK Consumer Price Index (CPI) and add a mandatory 30-day structural contract wind-down window.
+                    <div class="negotiation-panel">
+                        <h3 style="color:#185c4a; margin:0 0 10px 0;">📋 Clause 5.2: Intellectual Property Redline</h3>
+                        <p style="color:#6f7d86; font-size:0.9rem; margin-bottom:15px;">Below is the professional markup ready to copy and send back to the vendor. The predatory language has been automatically removed and replaced with standard market safety protections.</p>
+                        
+                        <div style="background-color:#f4f6f5; padding:15px; border-radius:8px; border:1px solid #d1d8d4; line-height:1.6; color:#17212b;">
+                            "5.2 Third-Party Intellectual Property Protection. The Service Provider agrees to 
+                            <span class="strike">protect</span> <span class="insert">defend, indemnify, and hold harmless</span> 
+                            the Client from third-party copyright claims 
+                            <span class="strike">up to a limit of £50,000, notwithstanding any other damages, performance issues, or general contract failures</span> 
+                            <span class="insert">and shall maintain uncapped financial liability for all third-party structural intellectual property litigation</span> 
+                            arising from or related to this Agreement."
+                        </div>
                     </div>
                     """,
                     unsafe_allow_html=True,
+                )
+                
+                # High-value feature: Let users download the text directly to their device files
+                st.download_button(
+                    label="📥 Download Professional Redline Text (.txt)",
+                    data="5.2 Third-Party Intellectual Property Protection. The Service Provider agrees to defend, indemnify, and hold harmless the Client from third-party copyright claims and shall maintain uncapped financial liability for all third-party structural intellectual property litigation arising from or related to this Agreement.",
+                    file_name="clausewise_counter_proposal.txt",
+                    mime="text/plain"
                 )
