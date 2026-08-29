@@ -38,7 +38,7 @@ st.sidebar.markdown(
     else "⚡ Usage: **1 / 1 Limit Reached**"
 )
 st.sidebar.markdown("---")
- api_key_input = st.secrets.get("GEMINI_API_KEY", "")xecution."
+api_key_input = st.secrets.get("GEMINI_API_KEY", "")xecution."
 )
 st.sidebar.markdown("---")
 
