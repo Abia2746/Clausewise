@@ -38,8 +38,7 @@ st.sidebar.markdown(
     else "⚡ Usage: **1 / 1 Limit Reached**"
 )
 st.sidebar.markdown("---")
-api_key_input = st.sidebar.text_input(
-    "Google Gemini API Key", type="password", help="Required for live multi-agent AI execution."
+ api_key_input = st.secrets.get("GEMINI_API_KEY", "")xecution."
 )
 st.sidebar.markdown("---")
 
