@@ -27,7 +27,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# SIDEBAR CONTROLS & API KEY CHECK
+# SIDEBAR CONTROLS & API KEY SECRETS FETCH
 st.sidebar.markdown("# ◈ Clausewise")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 👤 Account Space")
@@ -38,9 +38,10 @@ st.sidebar.markdown(
     else "⚡ Usage: **1 / 1 Limit Reached**"
 )
 st.sidebar.markdown("---")
-# Automatically fetch the key from Streamlit Secrets
+
+# Automatically fetch key from Streamlit Cloud Secrets
 api_key_input = st.secrets.get("GEMINI_API_KEY", "")
-)
+
 st.sidebar.markdown("---")
 
 st.title("Automate Your Contract Risk Reviews")
@@ -193,7 +194,7 @@ if st.button("Audit Contract", type="primary") or bypass_granted:
         st.warning("Please insert contract text before executing an audit.")
     elif not api_key_input:
         st.error(
-            "🔑 API Key Required: Please enter your Google Gemini API Key in the sidebar to run dynamic audits."
+            "🔑 API Key Missing: Please add 'GEMINI_API_KEY' to your Streamlit Cloud Secrets settings."
         )
     else:
         if st.session_state.audit_count >= 1 and not bypass_granted:
