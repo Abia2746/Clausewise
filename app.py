@@ -38,7 +38,8 @@ st.sidebar.markdown(
     else "⚡ Usage: **1 / 1 Limit Reached**"
 )
 st.sidebar.markdown("---")
-api_key_input = st.secrets.get("GEMINI_API_KEY", "")xecution."
+# Automatically fetch the key from Streamlit Secrets
+api_key_input = st.secrets.get("GEMINI_API_KEY", "")
 )
 st.sidebar.markdown("---")
 
