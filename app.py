@@ -9,7 +9,7 @@ import pandas as pd
 import streamlit as st
 
 # SYSTEM CONFIGURATION
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3.6-flash"
 
 st.set_page_config(
     page_title="Clausewise — Advanced Contract Lifecycle Engine",
