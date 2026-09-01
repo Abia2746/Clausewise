@@ -236,4 +236,4 @@ with tab_audit:
 
                         # Document Generation Interface
                         st.markdown("#### 📄 Generate Redlined Tracked Changes File")
-                        chosen_revision = st.selectbox(
+                        chosen_revision = st.selectbox
