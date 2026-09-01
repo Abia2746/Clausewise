@@ -47,7 +47,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# HELPER CORE 1: MULTI-AGENT INFERENCE ENGINE
+# GLOBAL INFRASTRUCTURE: MULTI-AGENT INFERENCE ENGINE
 def run_contract_audit(contract_text: str, api_key: str) -> dict:
     client = genai.Client(api_key=api_key)
     system_prompt = """
@@ -96,13 +96,13 @@ def run_contract_audit(contract_text: str, api_key: str) -> dict:
     )
     return json.loads(response.text)
 
-# HELPER CORE 2: NATIVE DOCX MARKUP INJECTOR
+# GLOBAL INFRASTRUCTURE: NATIVE DOCX MARKUP INJECTOR
 def create_native_tracked_changes_docx(deleted_text: str, inserted_text: str) -> BytesIO:
     doc = docx.Document()
     doc.add_heading("Clausewise — Native Tracked Changes Markup", level=0)
     p = doc.add_paragraph("Legal Redline Draft:\n")
     
-    # Deletion Setup
+    # Deletion Element
     del_run = OxmlElement("w:del")
     del_run.set(qn("w:id"), "0")
     del_run.set(qn("w:author"), "Clausewise AI")
@@ -114,7 +114,7 @@ def create_native_tracked_changes_docx(deleted_text: str, inserted_text: str) ->
     
     p.add_run(" ")
     
-    # Insertion Setup
+    # Insertion Element
     ins_run = OxmlElement("w:ins")
     ins_run.set(qn("w:id"), "1")
     ins_run.set(qn("w:author"), "Clausewise AI")
@@ -131,7 +131,7 @@ def create_native_tracked_changes_docx(deleted_text: str, inserted_text: str) ->
     buffer.seek(0)
     return buffer
 
-# SIDEBAR VIEWPORT
+# SIDEBAR TERMINAL LAYOUT
 st.sidebar.markdown("# ◈ Clausewise Enterprise")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 👤 Enterprise Workspace")
@@ -222,6 +222,6 @@ with tab_audit:
                             "Select target strategy to embed in track changes:",
                             ["position_a_ideal", "position_b_fallback"],
                             key="strategy_select"
+                        )
+                        inserted_text_target = pos.get(chosen_revision, "")
                         
-                        (inserted_text_target = pos.get(chosen_revision, "")
-                        docx_buffer = create_native_tracked_changes_docx
