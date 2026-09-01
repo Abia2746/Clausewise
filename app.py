@@ -21,7 +21,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# DATABASE INITIALIZATION (PILLAR 5: PERSISTENT PORTFOLIO REPOSITORY)
+# DATABASE INITIALIZATION
 conn = sqlite3.connect("contract_repository.db", check_same_thread=False)
 cursor = conn.cursor()
 cursor.execute(
@@ -47,70 +47,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# SIDEBAR CONTROLS & REPOSITORY ACCESS
-st.sidebar.markdown("# ◈ Clausewise Enterprise")
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 👤 Enterprise Workspace")
-st.sidebar.markdown("🛡️ **Zero Data Retention Active**")
-st.sidebar.markdown("⚡ Engine: **Multi-Agent Neural Mesh**")
-st.sidebar.markdown("---")
-
-# Retrieve API key securely from Streamlit secrets
-api_key_input = st.secrets.get("GEMINI_API_KEY", "")
-
-st.title("Automate Your Contract Risk Reviews")
-st.caption(
-    "100% Efficient Engine: Multi-format parsing, native MS Word tracked redlines, and persistent portfolio management."
-)
-
-# TABS: ACTIVE AUDIT VS PORTFOLIO REPOSITORY
-tab_audit, tab_repository = st.tabs(
-    ["📝 Active Contract Audit", "🗄️ Enterprise Portfolio Repository"]
-)
-
-with tab_audit:
-    # MULTI-FORMAT FILE INGESTION PIPELINE
-    st.markdown("### 1. Ingest Agreement File or Unstructured Text")
-    uploaded_file = st.file_uploader(
-        "Upload Contract (.pdf or .docx)", type=["pdf", "docx"]
-    )
-
-    SAMPLE_CONTRACT = """MASTER SOFTWARE & SERVICES AGREEMENT
-2.3 Unilateral Engine Changes. Licensor retains the right to modify model endpoints at any time, provided throughput is unaffected.
-3.4 Overdue Balances. Invoice balances unpaid after 14 calendar days shall accrue interest at 4% per annum above the Bank of England base rate.
-4.2 Algorithmic Optimization Notice. The system architecture evaluates purely for administrative formatting and syntax risk; parameters disclaim all reliance on substantive legal functions.
-5.1 Standard Liability Cap. Total combined financial exposure shall be strictly limited to the total amount paid by Licensee in the 3 months preceding the claim.
-5.2 Third-Party Intellectual Property Protection. The Service Provider agrees to protect the Client from third-party copyright claims up to a limit of £50,000, notwithstanding any other damages, performance issues, or general contract failures arising from or related to this Agreement."""
-
-    clause_text = ""
-    filename_to_save = "Direct Paste Input"
-    
-    if uploaded_file is not None:
-        filename_to_save = uploaded_file.name
-        if uploaded_file.name.endswith(".pdf"):
-            pdf_reader = PdfReader(uploaded_file)
-            for page in pdf_reader.pages:
-                clause_text += page.extract_text() or ""
-        elif uploaded_file.name.endswith(".docx"):
-            doc_file = docx.Document(uploaded_file)
-            clause_text = "\n".join([p.text for p in doc_file.paragraphs])
-        st.success(f"Successfully ingested {uploaded_file.name}")
-    else:
-        clause_text = st.text_area(
-            "Or paste contract text string directly here:",
-            value=SAMPLE_CONTRACT,
-            height=160,
-        )
-
-
-# MULTI-AGENT INFERENCE ENGINE
+# HELPER CORE 1: MULTI-AGENT INFERENCE ENGINE
 def run_contract_audit(contract_text: str, api_key: str) -> dict:
     client = genai.Client(api_key=api_key)
-
     system_prompt = """
     You are an elite Senior Commercial Legal Engine acting strictly for the BUYER/LICENSEE.
     Analyze the contract text and return a JSON payload with this exact schema:
-    
     {
       "agent_1_syntactic": {
         "target": "Clause location and title",
@@ -143,7 +85,6 @@ def run_contract_audit(contract_text: str, api_key: str) -> dict:
       ]
     }
     """
-
     response = client.models.generate_content(
         model=MODEL_NAME,
         contents=f"Analyze this contract text:\n\n{contract_text}",
@@ -155,17 +96,13 @@ def run_contract_audit(contract_text: str, api_key: str) -> dict:
     )
     return json.loads(response.text)
 
-
-# NATIVE MS WORD TRACKED REVISIONS INJECTOR (OPENXML REVISION TAGS)
-def create_native_tracked_changes_docx(
-    deleted_text: str, inserted_text: str
-) -> BytesIO:
+# HELPER CORE 2: NATIVE DOCX MARKUP INJECTOR
+def create_native_tracked_changes_docx(deleted_text: str, inserted_text: str) -> BytesIO:
     doc = docx.Document()
     doc.add_heading("Clausewise — Native Tracked Changes Markup", level=0)
-
     p = doc.add_paragraph("Legal Redline Draft:\n")
-
-    # Native Deletion Element
+    
+    # Deletion Setup
     del_run = OxmlElement("w:del")
     del_run.set(qn("w:id"), "0")
     del_run.set(qn("w:author"), "Clausewise AI")
@@ -174,10 +111,10 @@ def create_native_tracked_changes_docx(
     t_del.text = deleted_text
     del_run.append(t_del)
     p._p.append(del_run)
-
+    
     p.add_run(" ")
-
-    # Native Insertion Element
+    
+    # Insertion Setup
     ins_run = OxmlElement("w:ins")
     ins_run.set(qn("w:id"), "1")
     ins_run.set(qn("w:author"), "Clausewise AI")
@@ -188,14 +125,64 @@ def create_native_tracked_changes_docx(
     t_ins.append(t_ins_text)
     ins_run.append(t_ins)
     p._p.append(ins_run)
-
+    
     buffer = BytesIO()
     doc.save(buffer)
     buffer.seek(0)
     return buffer
 
+# SIDEBAR VIEWPORT
+st.sidebar.markdown("# ◈ Clausewise Enterprise")
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 👤 Enterprise Workspace")
+st.sidebar.markdown("🛡️ **Zero Data Retention Active**")
+st.sidebar.markdown("⚡ Engine: **Multi-Agent Neural Mesh**")
+st.sidebar.markdown("---")
+
+api_key_input = st.secrets.get("GEMINI_API_KEY", "")
+
+st.title("Automate Your Contract Risk Reviews")
+st.caption(
+    "100% Efficient Engine: Multi-format parsing, native MS Word tracked redlines, and persistent portfolio management."
+)
+
+tab_audit, tab_repository = st.tabs(
+    ["📝 Active Contract Audit", "🗄️ Enterprise Portfolio Repository"]
+)
 
 with tab_audit:
+    st.markdown("### 1. Ingest Agreement File or Unstructured Text")
+    uploaded_file = st.file_uploader(
+        "Upload Contract (.pdf or .docx)", type=["pdf", "docx"]
+    )
+
+    SAMPLE_CONTRACT = """MASTER SOFTWARE & SERVICES AGREEMENT
+2.3 Unilateral Engine Changes. Licensor retains the right to modify model endpoints at any time, provided throughput is unaffected.
+3.4 Overdue Balances. Invoice balances unpaid after 14 calendar days shall accrue interest at 4% per annum above the Bank of England base rate.
+4.2 Algorithmic Optimization Notice. The system architecture evaluates purely for administrative formatting and syntax risk; parameters disclaim all reliance on substantive legal functions.
+5.1 Standard Liability Cap. Total combined financial exposure shall be strictly limited to the total amount paid by Licensee in the 3 months preceding the claim.
+5.2 Third-Party Intellectual Property Protection. The Service Provider agrees to protect the Client from third-party copyright claims up to a limit of £50,000, notwithstanding any other damages, performance issues, or general contract failures arising from or related to this Agreement."""
+
+    clause_text = ""
+    filename_to_save = "Direct Paste Input"
+    
+    if uploaded_file is not None:
+        filename_to_save = uploaded_file.name
+        if uploaded_file.name.endswith(".pdf"):
+            pdf_reader = PdfReader(uploaded_file)
+            for page in pdf_reader.pages:
+                clause_text += page.extract_text() or ""
+        elif uploaded_file.name.endswith(".docx"):
+            doc_file = docx.Document(uploaded_file)
+            clause_text = "\n".join([p.text for p in doc_file.paragraphs])
+        st.success(f"Successfully ingested {uploaded_file.name}")
+    else:
+        clause_text = st.text_area(
+            "Or paste contract text string directly here:",
+            value=SAMPLE_CONTRACT,
+            height=160,
+        )
+
     if st.button("Execute Enterprise Audit", type="primary"):
         if not clause_text.strip():
             st.warning("Please upload a file or paste contract text.")
@@ -204,19 +191,15 @@ with tab_audit:
         else:
             with st.spinner("Executing Multi-Agent Syntactic Mesh..."):
                 try:
-                    # Execute AI Audit
                     results = run_contract_audit(clause_text, api_key_input)
                     st.success("Audit Complete!")
-
                     st.markdown("### 📊 LIVE INTERACTIVE NEGOTIATION DESK")
-
-                    # Extract Agent Reports safely
+                    
                     ag1 = results.get("agent_1_syntactic", {})
                     ag2 = results.get("agent_2_cross_clause", {})
                     ag3 = results.get("agent_3_portfolio_recovery", {})
                     obligations = results.get("pillar_5_obligation_registry", [])
 
-                    # UI Tab Layout
                     res_tab1, res_tab2, res_tab3 = st.tabs([
                         "🔍 Syntactic Risk & Redlines", 
                         "⚡ Cross-Clause Conflicts", 
@@ -226,14 +209,19 @@ with tab_audit:
                     with res_tab1:
                         st.subheader(f"Target: {ag1.get('target', 'N/A')}")
                         st.markdown(f"**Risk Analysis:** {ag1.get('analysis', 'N/A')}")
-                        st.text_area("Original Text Snippet:", value=ag1.get('original_text', ''), disabled=True)
+                        st.text_area("Original Text Snippet:", value=ag1.get('original_text', ''), disabled=True, key="orig_text_area")
                         
                         st.markdown("#### Playbook Revision Strategies")
                         pos = ag1.get("playbook_positions", {})
                         st.info(f"**Ideal Position (Aggressive Buyer):** {pos.get('position_a_ideal', 'N/A')}")
                         st.warning(f"**Fallback Position (Balanced Commercial):** {pos.get('position_b_fallback', 'N/A')}")
                         st.error(f"**Walkaway Threshold:** {pos.get('position_c_walkaway', 'N/A')}")
-
-                        # Document Generation Interface
+                        
                         st.markdown("#### 📄 Generate Redlined Tracked Changes File")
-                        chosen_revision = st.selectbox
+                        chosen_revision = st.selectbox(
+                            "Select target strategy to embed in track changes:",
+                            ["position_a_ideal", "position_b_fallback"],
+                            key="strategy_select"
+                        
+                        (inserted_text_target = pos.get(chosen_revision, "")
+                        docx_buffer = create_native_tracked_changes_docx
