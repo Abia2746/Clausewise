@@ -43,7 +43,7 @@ if "audit_count" not in st.session_state:
 
 # STYLING SHEET
 st.markdown(
-    "<style>.stApp { background-color: #fbfcfa !important; color: #17212b !important; }[data-testid='stSidebar'] { background-color: #f1f5f1 !important; border-right: 1px solid #e5e9e6 !important; }[data-testid='stSidebar'] * { color: #17212b !important; font-weight: 600 !important; }textarea, input { background-color: #ffffff !important; border: 2px solid #185c4a !important; color: #17212b !important; }.paywall-card { background: linear-gradient(135deg, #143f35 0%, #1d6a55 100%) !important; border-radius: 12px; padding: 20px; color: white !important; }div.stButton > button:first-child { background-color: #185c4a !important; color: #ffffff !important; font-weight: 700 !important; border: none !important; }</style>",
+    """<style>.stApp { background-color: #fbfcfa !important; color: #17212b !important; }[data-testid='stSidebar'] { background-color: #f1f5f1 !important; border-right: 1px solid #e5e9e6 !important; }[data-testid='stSidebar'] * { color: #17212b !important; font-weight: 600 !important; }textarea, input { background-color: #ffffff !important; border: 2px solid #185c4a !important; color: #17212b !important; }.paywall-card { background: linear-gradient(135deg, #143f35 0%, #1d6a55 100%) !important; border-radius: 12px; padding: 20px; color: white !important; }div.stButton > button:first-child { background-color: #185c4a !important; color: #ffffff !important; font-weight: 700 !important; border: none !important; }</style>""",
     unsafe_allow_html=True,
 )
 
