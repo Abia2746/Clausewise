@@ -34,7 +34,7 @@ cursor.execute(
         payment_terms TEXT,
         risk_status TEXT
     )
-"""
+    """
 )
 conn.commit()
 
