@@ -200,6 +200,22 @@ with tab_audit:
                     ag3 = results.get("agent_3_portfolio_recovery", {})
                     obligations = results.get("pillar_5_obligation_registry", [])
 
+                    # Persist run to SQLite repository
+                    cursor.execute(
+                        """
+                        INSERT INTO contracts (filename, audit_date, liability_cap, payment_terms, risk_status)
+                        VALUES (?, ?, ?, ?, ?)
+                        """,
+                        (
+                            filename_to_save,
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            ag3.get("liability_cap_extracted", "N/A"),
+                            ag3.get("payment_terms_extracted", "N/A"),
+                            ag3.get("risk_status", "Low"),
+                        ),
+                    )
+                    conn.commit()
+
                     res_tab1, res_tab2, res_tab3 = st.tabs([
                         "🔍 Syntactic Risk & Redlines", 
                         "⚡ Cross-Clause Conflicts", 
@@ -225,3 +241,38 @@ with tab_audit:
                         )
                         inserted_text_target = pos.get(chosen_revision, "")
                         
+                        docx_buffer = create_native_tracked_changes_docx(
+                            ag1.get('original_text', ''),
+                            inserted_text_target
+                        )
+                        
+                        st.download_button(
+                            label="📥 Download Tracked Redline (.docx)",
+                            data=docx_buffer,
+                            file_name=f"Redline_{filename_to_save}.docx",
+                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        )
+
+                    with res_tab2:
+                        st.subheader("Cross-Clause Conflict Analysis")
+                        st.warning(f"**Conflict Identified:** {ag2.get('conflict', 'None')}")
+                        st.markdown(f"**Legal Trap Analysis:** {ag2.get('analysis', 'N/A')}")
+                        st.code(ag2.get('redline_redirection', 'No redirection available.'), language="text")
+
+                    with res_tab3:
+                        st.subheader("Extracted Obligations & Milestones")
+                        if obligations:
+                            st.dataframe(pd.DataFrame(obligations), use_container_width=True)
+                        else:
+                            st.write("No operational obligations tagged.")
+
+                except Exception as e:
+                    st.error(f"An error occurred during processing: {str(e)}")
+
+with tab_repository:
+    st.markdown("### 🗄️ Enterprise Portfolio Repository")
+    df = pd.read_sql_query("SELECT * FROM contracts ORDER BY id DESC", conn)
+    if not df.empty:
+        st.dataframe(df, use_container_width=True)
+    else:
+        st.info("No contracts logged in repository yet. Run an audit to populate.")
