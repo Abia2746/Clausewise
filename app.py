@@ -1,9 +1,3 @@
-"""
-Clausewise Enterprise — 100% Complete Contract Engine.
-Includes PDF Ingestion, Multi-Agent AI Audit, Native Word Tracked Changes,
-and Persistent SQLite Portfolio Database.
-"""
-
 import json
 import sqlite3
 from datetime import datetime
@@ -18,7 +12,7 @@ from pypdf import PdfReader
 import streamlit as st
 
 # SYSTEM CONFIGURATION
-MODEL_NAME = "gemini-3.6-flash"
+MODEL_NAME = "gemini-2.5-flash"  # Updated to the correct, available model name
 
 st.set_page_config(
     page_title="Clausewise Enterprise — Contract Lifecycle Engine",
@@ -61,6 +55,7 @@ st.sidebar.markdown("🛡️ **Zero Data Retention Active**")
 st.sidebar.markdown("⚡ Engine: **Multi-Agent Neural Mesh**")
 st.sidebar.markdown("---")
 
+# Retrieve API key securely from Streamlit secrets
 api_key_input = st.secrets.get("GEMINI_API_KEY", "")
 
 st.title("Automate Your Contract Risk Reviews")
@@ -88,7 +83,10 @@ with tab_audit:
 5.2 Third-Party Intellectual Property Protection. The Service Provider agrees to protect the Client from third-party copyright claims up to a limit of £50,000, notwithstanding any other damages, performance issues, or general contract failures arising from or related to this Agreement."""
 
     clause_text = ""
+    filename_to_save = "Direct Paste Input"
+    
     if uploaded_file is not None:
+        filename_to_save = uploaded_file.name
         if uploaded_file.name.endswith(".pdf"):
             pdf_reader = PdfReader(uploaded_file)
             for page in pdf_reader.pages:
@@ -131,7 +129,10 @@ def run_contract_audit(contract_text: str, api_key: str) -> dict:
       },
       "agent_3_portfolio_recovery": {
         "target": "Financial and operational terms",
-        "analysis": "Financial risk analysis"
+        "analysis": "Financial risk analysis",
+        "liability_cap_extracted": "Extracted liability threshold summary",
+        "payment_terms_extracted": "Extracted payment milestone summary",
+        "risk_status": "High, Medium, or Low"
       },
       "pillar_5_obligation_registry": [
         {
@@ -157,7 +158,7 @@ def run_contract_audit(contract_text: str, api_key: str) -> dict:
 
 # NATIVE MS WORD TRACKED REVISIONS INJECTOR (OPENXML REVISION TAGS)
 def create_native_tracked_changes_docx(
-    original_text: str, deleted_text: str, inserted_text: str
+    deleted_text: str, inserted_text: str
 ) -> BytesIO:
     doc = docx.Document()
     doc.add_heading("Clausewise — Native Tracked Changes Markup", level=0)
@@ -168,9 +169,7 @@ def create_native_tracked_changes_docx(
     del_run = OxmlElement("w:del")
     del_run.set(qn("w:id"), "0")
     del_run.set(qn("w:author"), "Clausewise AI")
-    del_run.set(
-        qn("w:date"), datetime.now().isoformat()
-    )  # Native ISO date formatting
+    del_run.set(qn("w:date"), datetime.now().isoformat())
     t_del = OxmlElement("w:delText")
     t_del.text = deleted_text
     del_run.append(t_del)
@@ -182,9 +181,7 @@ def create_native_tracked_changes_docx(
     ins_run = OxmlElement("w:ins")
     ins_run.set(qn("w:id"), "1")
     ins_run.set(qn("w:author"), "Clausewise AI")
-    ins_run.set(
-        qn("w:date"), datetime.now().isoformat()
-    )  # Native ISO date formatting
+    ins_run.set(qn("w:date"), datetime.now().isoformat())
     t_ins = OxmlElement("w:r")
     t_ins_text = OxmlElement("w:t")
     t_ins_text.text = inserted_text
@@ -203,90 +200,39 @@ with tab_audit:
         if not clause_text.strip():
             st.warning("Please upload a file or paste contract text.")
         elif not api_key_input:
-            st.error("🔑 API Key Missing: Ensure GEMINI_API_KEY is configured.")
+            st.error("🔑 API Key Missing: Ensure GEMINI_API_KEY is configured in your Streamlit secrets.")
         else:
             with st.spinner("Executing Multi-Agent Syntactic Mesh..."):
                 try:
+                    # Execute AI Audit
                     results = run_contract_audit(clause_text, api_key_input)
+                    st.success("Audit Complete!")
 
                     st.markdown("### 📊 LIVE INTERACTIVE NEGOTIATION DESK")
 
-                    ag1 = results["agent_1_syntactic"]
-                    st.error("🤖 AGENT 1: SYNTACTIC & INDEMNITY AUDITOR")
-                    st.markdown(f"**Target:** {ag1['target']}")
-                    st.markdown(f"**Analysis:** {ag1['analysis']}")
-                    st.markdown(
-                        f"🥇 **Position A (Ideal):** `{ag1['playbook_positions']['position_a_ideal']}`"
-                    )
-                    st.markdown(
-                        f"🥈 **Position B (Fallback):** `{ag1['playbook_positions']['position_b_fallback']}`"
-                    )
-                    st.markdown(
-                        f"🥉 **Position C (Walkaway):** `{ag1['playbook_positions']['position_c_walkaway']}`"
-                    )
+                    # Extract Agent Reports
+                    ag1 = results.get("agent_1_syntactic", {})
+                    ag2 = results.get("agent_2_cross_clause", {})
+                    ag3 = results.get("agent_3_portfolio_recovery", {})
+                    obligations = results.get("pillar_5_obligation_registry", [])
 
-                    ag2 = results["agent_2_cross_clause"]
-                    st.error(
-                        "🤖 AGENT 2: CROSS-CLAUSE DISCLAIMER MATCHING AGENT"
-                    )
-                    st.markdown(f"**Conflict:** {ag2['conflict']}")
-                    st.markdown(f"**Analysis:** {ag2['analysis']}")
-                    st.markdown(
-                        f"**Redline Adjustment:** `{ag2['redline_redirection']}`"
-                    )
+                    # UI Tab layout inside results desk
+                    res_tab1, res_tab2, res_tab3 = st.tabs([
+                        "🔍 Syntactic Risk & Redlines", 
+                        "⚡ Cross-Clause Conflicts", 
+                        "📋 Operational Registry"
+                    ])
 
-                    ag3 = results["agent_3_portfolio_recovery"]
-                    st.error("🤖 AGENT 3: PORTFOLIO LIFECYCLE RECOVERY AGENT")
-                    st.markdown(f"**Target:** {ag3['target']}")
-                    st.markdown(f"**Analysis:** {ag3['analysis']}")
+                    with res_tab1:
+                        st.subheader(f"Target: {ag1.get('target', 'N/A')}")
+                        st.markdown(f"**Risk Analysis:** {ag1.get('analysis', 'N/A')}")
+                        st.text_area("Original Text Snippet:", value=ag1.get('original_text', ''), disabled=True)
+                        
+                        st.markdown("#### Playbook Revision Strategies")
+                        pos = ag1.get("playbook_positions", {})
+                        st.info(f"**Ideal Position (Aggressive Buyer):** {pos.get('position_a_ideal', 'N/A')}")
+                        st.warning(f"**Fallback Position (Balanced Commercial):** {pos.get('position_b_fallback', 'N/A')}")
+                        st.error(f"**Walkaway Threshold:** {pos.get('position_c_walkaway', 'N/A')}")
 
-                    st.markdown(
-                        "### 📅 PILLAR 5: POST-EXECUTION OBLIGATION REGISTRY"
-                    )
-                    df_registry = pd.DataFrame(
-                        results["pillar_5_obligation_registry"]
-                    )
-                    st.dataframe(df_registry, use_container_width=True)
-
-                    # PERSIST TO REPOSITORY DATABASE
-                    fname = (
-                        uploaded_file.name
-                        if uploaded_file
-                        else "Manual_Input.txt"
-                    )
-                    cursor.execute(
-                        "INSERT INTO contracts (filename, audit_date, liability_cap, payment_terms, risk_status) VALUES (?, ?, ?, ?, ?)",
-                        (
-                            fname,
-                            datetime.now().strftime("%Y-%m-%d %H:%M"),
-                            ag3.get("target", "Extracted Cap"),
-                            "Parsed Terms",
-                            "AUDITED",
-                        ),
-                    )
-                    conn.commit()
-
-                    # GENERATE NATIVE WORD TRACKED CHANGES FILE
-                    docx_file = create_native_tracked_changes_docx(
-                        original_text=ag1.get("original_text", "Original"),
-                        deleted_text="Original Vendor Clause",
-                        inserted_text=ag1["playbook_positions"][
-                            "position_a_ideal"
-                        ],
-                    )
-
-                    st.download_button(
-                        label="📥 Download Native MS Word Tracked Changes (.docx)",
-                        data=docx_file,
-                        file_name="native_tracked_changes_redline.docx",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    )
-
-                except Exception as e:
-                    st.error(f"Audit Execution Failed: {str(e)}")
-
-# TAB 2: PERSISTENT PORTFOLIO REPOSITORY
-with tab_repository:
-    st.markdown("### 🗄️ Executed Contracts Database")
-    repo_df = pd.read_sql_query("SELECT * FROM contracts", conn)
-    st.dataframe(repo_df, use_container_width=True)
+                        # Document Generation Engine Interface
+                        st.markdown("#### 📄 Generate Redlined Tracked Changes File")
