@@ -210,13 +210,13 @@ with tab_audit:
 
                     st.markdown("### 📊 LIVE INTERACTIVE NEGOTIATION DESK")
 
-                    # Extract Agent Reports safely using fallback get structures
+                    # Extract Agent Reports safely
                     ag1 = results.get("agent_1_syntactic", {})
                     ag2 = results.get("agent_2_cross_clause", {})
                     ag3 = results.get("agent_3_portfolio_recovery", {})
                     obligations = results.get("pillar_5_obligation_registry", [])
 
-                    # Dynamic presentation layers
+                    # UI Tab Layout
                     res_tab1, res_tab2, res_tab3 = st.tabs([
                         "🔍 Syntactic Risk & Redlines", 
                         "⚡ Cross-Clause Conflicts", 
@@ -234,5 +234,6 @@ with tab_audit:
                         st.warning(f"**Fallback Position (Balanced Commercial):** {pos.get('position_b_fallback', 'N/A')}")
                         st.error(f"**Walkaway Threshold:** {pos.get('position_c_walkaway', 'N/A')}")
 
-                        # Tracked changes file production system
+                        # Document Generation Interface
                         st.markdown("#### 📄 Generate Redlined Tracked Changes File")
+                        chosen_revision = st.selectbox(
