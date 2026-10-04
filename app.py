@@ -196,7 +196,7 @@ with tab_audit:
                     st.markdown("### 📊 LIVE INTERACTIVE NEGOTIATION DESK")
                     
                     ag1 = results.get("agent_1_syntactic", {})
-                    st.markdown(f"#### 🛑 Agent 1: Shari'ah Compliance & Indemnity Auditor")
+                    st.markdown("#### 🛑 Agent 1: Shari'ah Compliance & Indemnity Auditor")
                     st.markdown(f"**Target:** {ag1.get('target')}")
                     st.info(f"**Analysis:** {ag1.get('analysis')}")
                     
