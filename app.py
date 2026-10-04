@@ -6,18 +6,12 @@ from google import genai
 from google.genai import types
 import streamlit as st
 
-# Change Line 10 near the top of the file to this:
-# Change Line 11 to this exact string:
-# Change Line 11 to this to completely bypass the 429 lock:
-# Update the model string handle to this:
+# SYSTEM CONFIGURATION - Kept exactly at your requested model selection
 MODEL_NAME = "gemini-3.8-flash"
-
-
-
 
 st.set_page_config(page_title="Clausewise Shari'ah Engine", layout="wide")
 
-# DATABASE
+# DATABASE INITIALIZATION
 conn = sqlite3.connect("contract_repository.db", check_same_thread=False)
 cursor = conn.cursor()
 cursor.execute("CREATE TABLE IF NOT EXISTS contracts (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT, audit_date TEXT, risk_status TEXT)")
@@ -97,6 +91,9 @@ with tab_repo:
     st.markdown("### Historical Portfolio Records")
     try:
         df = pd.read_sql_query("SELECT * FROM contracts ORDER BY id DESC", conn)
-        st.dataframe(df, use_container_width=True) if not df.empty else st.info("Database registry is currently empty.")
+        if not df.empty:
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.info("Database registry is currently empty.")
     except Exception as db_err:
         st.error(f"Database error: {str(db_err)}")
