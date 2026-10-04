@@ -202,8 +202,6 @@ with tab_audit:
                     
                     st.success("Audit complete! Structural findings details down below:")
                     
-                    # FIXED: One-line inline calls for metrics to guarantee closed brackets
+                    # FIXED: Flatted structural sequence. No contextual block indentation nesting here.
                     col1, col2 = st.columns(2)
-                    with col1:
-                        st.metric(label="Risk Status", value=str(analysis_result["agent_3_portfolio_recovery"]["risk_status"]))
-                    with col2:
+                    col1.metric(label="Risk Status", value=str(analysis_result["agent_3_portfolio_recovery"]["risk_status"]))
