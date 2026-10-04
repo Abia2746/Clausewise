@@ -6,10 +6,8 @@ from google import genai
 from google.genai import types
 import streamlit as st
 
-MODEL_NAME = "gemini-1.5-flash"
-st.set_page_config(page_title="Clausewise Shari'ah Engine", layout="wide")
-# Change Line 11 to this:
 MODEL_NAME = "gemini-2.5-flash"
+st.set_page_config(page_title="Clausewise Shari'ah Engine", layout="wide")
 
 # DATABASE
 conn = sqlite3.connect("contract_repository.db", check_same_thread=False)
@@ -25,14 +23,16 @@ def run_contract_audit(text: str, key: str) -> dict:
       "redline": "AAOIFI-compliant alternative clause text (e.g. late fees directed to charity).",
       "risk_status": "High, Medium, or Low"
     }"""
+    # Explicitly encode and decode the string to clean out rogue character formats
+    clean_text = str(text.encode('utf-8', errors='ignore').decode('utf-8'))
     resp = client.models.generate_content(
-        model=MODEL_NAME, contents=text,
+        model=MODEL_NAME, contents=clean_text,
         config=types.GenerateContentConfig(system_instruction=prompt, response_mime_type="application/json", temperature=0.1)
     )
     return json.loads(resp.text)
 
-# SIDEBAR & INPUT
-st.sidebar.markdown("# ◈ Clausewise Shari'ah\n🛡️ **Zero Data Retention Active**")
+# SIDEBAR & INPUT - Cleaned text configurations
+st.sidebar.markdown("# Clausewise Shariah\n🛡️ **Zero Data Retention Active**")
 api_key = st.secrets.get("GEMINI_API_KEY", "")
 if not api_key:
     api_key = st.sidebar.text_input("Enter Gemini API Key", type="password")
@@ -62,15 +62,19 @@ with tab_audit:
         if not clause_text.strip():
             st.warning("Please provide contract text.")
         elif not api_key:
-            st.error("🔑 API Key Missing in Sidebar or Advanced Settings.")
+            st.error("🔑 API Key Missing.")
         else:
             with st.spinner("Analyzing against AAOIFI Standards..."):
                 try:
                     res = run_contract_audit(clause_text, api_key)
                     st.success("Audit Complete!")
                     st.markdown("### 📊 LIVE INTERACTIVE NEGOTIATION DESK")
-                    st.info(f"**Compliance Analysis:** {res.get('analysis')}")
-                    st.warning(f"⚖️ **Ideal AAOIFI Redline Suggestion:** `{res.get('redline')}`")
+                    
+                    analysis_text = res.get('analysis', 'N/A')
+                    redline_text = res.get('redline', 'N/A')
+                    
+                    st.info(f"**Compliance Analysis:** {analysis_text}")
+                    st.warning(f"⚖️ **Ideal AAOIFI Redline Suggestion:** `{redline_text}`")
                     
                     status = res.get("risk_status", "High")
                     if "High" in status: st.error(f"🔴 Systemic Shari'ah Risk Status: {status}")
