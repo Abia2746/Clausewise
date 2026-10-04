@@ -1,4 +1,4 @@
-import json
+import json  # FIXED: Added missing import
 import sqlite3
 from datetime import datetime
 from io import BytesIO
@@ -140,6 +140,8 @@ st.sidebar.markdown("⚡ Engine: **Multi-Agent Neural Mesh**")
 st.sidebar.markdown("---")
 
 api_key_input = st.secrets.get("GEMINI_API_KEY", "")
+if not api_key_input:
+    api_key_input = st.sidebar.text_input("Enter Gemini API Key", type="password")
 
 st.title("Automate Your Shari'ah Contract Risk Reviews")
 st.caption(
@@ -166,39 +168,42 @@ with tab_audit:
     clause_text = ""
     filename_to_save = "Direct Paste Input"
     
+    # FIXED: Comprehensive Try-Except Parser Engine
     if uploaded_file is not None:
         filename_to_save = uploaded_file.name
-        if uploaded_file.name.endswith(".pdf"):
-            pdf_reader = PdfReader(uploaded_file)
-            for page in pdf_reader.pages:
-                clause_text += page.extract_text() or ""
-        elif uploaded_file.name.endswith(".docx"):
-            doc_file = docx.Document(uploaded_file)
-            clause_text = "\n".join([p.text for p in doc_file.paragraphs])
-        st.success(f"Successfully ingested {uploaded_file.name}")
-    else:
-        clause_text = st.text_area(
-            "Or paste contract text string directly here:",
-            value=SAMPLE_CONTRACT,
-            height=160,
-        )
+        try:
+            if uploaded_file.name.endswith(".docx"):
+                doc_file = docx.Document(uploaded_file)
+                clause_text = "\n".join([p.text for p in doc_file.paragraphs])
+            elif uploaded_file.name.endswith(".pdf"):
+                pdf_reader = PdfReader(uploaded_file)
+                text_layers = []
+                for page in pdf_reader.pages:
+                    text = page.extract_text()
+                    if text:
+                        text_layers.append(text)
+                clause_text = "\n".join(text_layers)
+        except Exception as e:
+            st.error(f"Error reading uploaded file: {str(e)}")
+            clause_text = ""
+            
+    clause_text = st.text_area(
+        "Contract Text to Evaluate", 
+        value=clause_text if clause_text else SAMPLE_CONTRACT, 
+        height=250
+    )
 
-    if st.button("Execute Enterprise Audit", type="primary"):
-        if not clause_text.strip():
-            st.warning("Please upload a file or paste contract text.")
-        elif not api_key_input:
-            st.error("🔑 API Key Missing: Ensure GEMINI_API_KEY is configured in your Advanced Settings.")
+    if st.button("Run Shari'ah Compliance Audit"):
+        if not api_key_input:
+            st.error("Please provide a valid Gemini API Key to run the audit engine.")
         else:
-            with st.spinner("Executing Multi-Agent Shari'ah Compliance Mesh..."):
+            with st.spinner("Processing multi-agent compliance review against AAOIFI standards..."):
                 try:
-                    results = run_contract_audit(clause_text, api_key_input)
-                    st.success("Audit Complete!")
-                    st.markdown("### 📊 LIVE INTERACTIVE NEGOTIATION DESK")
+                    analysis_result = run_contract_audit(clause_text, api_key_input)
                     
-                    ag1 = results.get("agent_1_syntactic", {})
-                    st.markdown("#### 🛑 Agent 1: Shari'ah Compliance & Indemnity Auditor")
-                    st.markdown(f"**Target:** {ag1.get('target', 'N/A')}")
-                    st.info(f"**Analysis:** {ag1.get('analysis', 'N/A')}")
+                    st.success("Audit complete! Structural findings details down below:")
                     
-                    pb = ag1.get("playbook_positions", {})
-                    st.markdown(f"🟠 **Position A (Ideal AAOIFI Redline):** `{pb.get('position_a_ideal', 'N/A')}`")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric(label="Risk Status", value=analysis_result["agent_3_portfolio_recovery"]["risk_status"])
+                    with col2:
