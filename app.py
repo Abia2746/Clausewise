@@ -8,7 +8,9 @@ import streamlit as st
 
 # Change Line 10 near the top of the file to this:
 # Change Line 11 to this exact string:
-MODEL_NAME = "gemini-3.1-pro-preview"
+# Change Line 11 to this to completely bypass the 429 lock:
+MODEL_NAME = "gemini-2.5-flash"
+
 
 
 st.set_page_config(page_title="Clausewise Shari'ah Engine", layout="wide")
