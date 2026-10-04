@@ -206,4 +206,4 @@ with tab_audit:
                     col1.metric(label="Risk Status", value=str(analysis_result["agent_3_portfolio_recovery"]["risk_status"]))
                     col2.metric(label="Liability Threshold", value=str(analysis_result["agent_3_portfolio_recovery"]["liability_cap_extracted"]))
                     
-                    a1, a2, a3 = st.tabs([]
+                    a1, a2, a3 = st.tabs()
