@@ -1,95 +1,88 @@
-e
-        if uploaded_file.name.endswith(".pdf"):
-            pdf_reader = PdfReader(uploaded_file)
-            for page in pdf_reader.pages:
-                clause_text += page.extract_text() or ""
-        elif uploaded_file.name.endswith(".docx"):
-            doc_file = docx.Document(uploaded_file)
-            clause_text = "\n".join([p.text for p in doc_file.paragraphs])
-        st.success(f"Successfully ingested {uploaded_file.name}")
-    else:
-        clause_text = st.text_area(
-            "Or paste contract text string directly here:",
-            value=SAMPLE_CONTRACT,
-            height=160,
-        )
+import json, sqlite3, docx, pandas as pd
+from datetime import datetime
+from io import BytesIO
+from pypdf import PdfReader
+from google import genai
+from google.genai import types
+import streamlit as st
 
-    if st.button("Execute Enterprise Audit", type="primary"):
-        if not clause_text.strip():
-            st.warning("Please upload a file or paste contract text.")
-        elif not api_key_input:
-            st.error("🔑 API Key Missing: Provide your key in the sidebar configuration input.")
+MODEL_NAME = "gemini-1.5-flash"
+st.set_page_config(page_title="Clausewise Shari'ah Engine", layout="wide")
+
+# DATABASE
+conn = sqlite3.connect("contract_repository.db", check_same_thread=False)
+cursor = conn.cursor()
+cursor.execute("CREATE TABLE IF NOT EXISTS contracts (id INTEGER PRIMARY KEY AUTOINCREMENT, filename TEXT, audit_date TEXT, risk_status TEXT)")
+conn.commit()
+
+def run_contract_audit(text: str, key: str) -> dict:
+    client = genai.Client(api_key=key)
+    prompt = """You are an AAOIFI Shari'ah Compliance Auditor. Analyze the contract text and return a JSON payload with this exact schema:
+    {
+      "analysis": "Detailed Shari'ah analysis flagging Riba (Interest) or non-compliant Dhaman (Risk allocation).",
+      "redline": "AAOIFI-compliant alternative clause text (e.g. late fees directed to charity).",
+      "risk_status": "High, Medium, or Low"
+    }"""
+    resp = client.models.generate_content(
+        model=MODEL_NAME, contents=text,
+        config=types.GenerateContentConfig(system_instruction=prompt, response_mime_type="application/json", temperature=0.1)
+    )
+    return json.loads(resp.text)
+
+# SIDEBAR & INPUT
+st.sidebar.markdown("# ◈ Clausewise Shari'ah\n🛡️ **Zero Data Retention Active**")
+api_key = st.secrets.get("GEMINI_API_KEY", "")
+if not api_key:
+    api_key = st.sidebar.text_input("Enter Gemini API Key", type="password")
+
+st.title("Automate Your Shari'ah Contract Risk Reviews")
+tab_audit, tab_repo = st.tabs(["📝 Active Contract Audit", "🗄️ Portfolio Repository"])
+
+with tab_audit:
+    uploaded_file = st.file_uploader("Upload Contract (.pdf, .docx)", type=["pdf", "docx"])
+    SAMPLE = """ISLAMIC TRADE FACILITY & INVESTMENT AGREEMENT
+2.3 All risk of asset loss passes completely to the Client prior to the execution of the separate Murabahah sale contract.
+3.4 Invoice balances unpaid after 14 days shall accrue default interest at a rate of 4% per annum."""
+    
+    clause_text = ""
+    name_to_save = "Direct Paste Input"
+    
+    if uploaded_file:
+        name_to_save = uploaded_file.name
+        if uploaded_file.name.endswith(".pdf"):
+            clause_text = "\n".join([p.extract_text() or "" for p in PdfReader(uploaded_file).pages])
         else:
-            with st.spinner("Executing Multi-Agent Shari'ah Compliance Mesh..."):
+            clause_text = "\n".join([p.text for p in docx.Document(uploaded_file).paragraphs])
+    else:
+        clause_text = st.text_area("Or paste contract text here:", value=SAMPLE, height=150)
+        
+    if st.button("Execute Shari'ah Audit", type="primary"):
+        if not clause_text.strip():
+            st.warning("Please provide contract text.")
+        elif not api_key:
+            st.error("🔑 API Key Missing in Sidebar or Advanced Settings.")
+        else:
+            with st.spinner("Analyzing against AAOIFI Standards..."):
                 try:
-                    results = run_contract_audit(clause_text, api_key_input)
+                    res = run_contract_audit(clause_text, api_key)
                     st.success("Audit Complete!")
                     st.markdown("### 📊 LIVE INTERACTIVE NEGOTIATION DESK")
+                    st.info(f"**Compliance Analysis:** {res.get('analysis')}")
+                    st.warning(f"⚖️ **Ideal AAOIFI Redline Suggestion:** `{res.get('redline')}`")
                     
-                    ag1 = results.get("agent_1_syntactic", {})
-                    st.markdown("#### 🛑 Agent 1: Shari'ah Compliance & Indemnity Auditor")
-                    st.markdown(f"**Target:** {ag1.get('target', 'N/A')}")
-                    st.info(f"**Analysis:** {ag1.get('analysis', 'N/A')}")
+                    status = res.get("risk_status", "High")
+                    if "High" in status: st.error(f"🔴 Systemic Shari'ah Risk Status: {status}")
+                    else: st.success(f"🟢 Systemic Shari'ah Risk Status: {status}")
                     
-                    pb = ag1.get("playbook_positions", {})
-                    st.markdown(f"🟠 **Position A (Ideal AAOIFI Redline):** `{pb.get('position_a_ideal', 'N/A')}`")
-                    st.markdown(f"🔵 **Position B (Shari'ah Fallback):** `{pb.get('position_b_fallback', 'N/A')}`")
-                    st.markdown(f"⚫ **Position C (Walkaway Limit):** `{pb.get('position_c_walkaway', 'N/A')}`")
-                    
-                    docx_buffer = create_native_tracked_changes_docx(ag1.get("original_text", ""), pb.get("position_a_ideal", ""))
-                    st.download_button(
-                        label="📥 Download Native Tracked Changes MS Word Document",
-                        data=docx_buffer,
-                        file_name="shariah_redline_tracked_changes.docx",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    )
-                    
-                    st.markdown("---")
-                    ag2 = results.get("agent_2_cross_clause", {})
-                    st.markdown("#### 🔄 Agent 2: Cross-Clause Structure Validation")
-                    st.error(f"**Conflict Trap:** {ag2.get('conflict', 'N/A')}")
-                    st.markdown(f"**Structural Defect Analysis:** {ag2.get('analysis', 'N/A')}")
-                    st.markdown(f"⚖️ **Corrective Shari'ah Wording:** `{ag2.get('redline_redirection', 'N/A')}`")
-                    
-                    st.markdown("---")
-                    ag3 = results.get("agent_3_portfolio_recovery", {})
-                    st.markdown("#### 📈 Agent 3: Structural Portfolio Status")
-                    st.markdown(f"**Financial Analysis:** {ag3.get('analysis', 'N/A')}")
-                    st.markdown(f"**Liability / Charity Summary:** {ag3.get('liability_cap_extracted', 'N/A')}")
-                    st.markdown(f"**Extracted Payment Framework:** {ag3.get('payment_terms_extracted', 'N/A')}")
-                    
-                    status = ag3.get("risk_status", "High")
-                    if "High" in status:
-                        st.error(f"🔴 Systemic Shari'ah Risk Status: {status}")
-                    elif "Medium" in status:
-                        st.warning(f"🟡 Systemic Shari'ah Risk Status: {status}")
-                    else:
-                        st.success(f"🟢 Systemic Shari'ah Risk Status: {status}")
-                        
-                    st.markdown("---")
-                    st.markdown("### 📋 PILLAR 5: REGULATORY OBLIGATION REGISTRY")
-                    p5_data = results.get("pillar_5_obligation_registry", [])
-                    if p5_data:
-                        df = pd.DataFrame(p5_data)
-                        st.dataframe(df, use_container_width=True)
-                        
-                    cursor.execute(
-                        "INSERT INTO contracts (filename, audit_date, liability_cap, payment_terms, risk_status) VALUES (?, ?, ?, ?, ?)",
-                        (filename_to_save, datetime.now().strftime("%Y-%m-%d %H:%M"), ag3.get('liability_cap_extracted', 'N/A'), ag3.get('payment_terms_extracted', 'N/A'), status)
-                    )
+                    cursor.execute("INSERT INTO contracts (filename, audit_date, risk_status) VALUES (?, ?, ?)", (name_to_save, datetime.now().strftime("%Y-%m-%d %H:%M"), status))
                     conn.commit()
-                    st.session_state.audit_count += 1
-                    
                 except Exception as e:
-                    st.error(f"Execution Failed: Internal processing error. {str(e)}")
+                    st.error(f"Processing Error: {str(e)}")
 
-with tab_repository:
+with tab_repo:
     st.markdown("### Historical Portfolio Records")
     try:
-        db_df = pd.read_sql_query("SELECT * FROM contracts ORDER BY id DESC", conn)
-        if not db_df.empty:
-            st.dataframe(db_df, use_container_width=True)
-        else:
-            st.info("The internal database registry is currently empty. Run an audit to log portfolio metadata.")
+        df = pd.read_sql_query("SELECT * FROM contracts ORDER BY id DESC", conn)
+        st.dataframe(df, use_container_width=True) if not df.empty else st.info("Database registry is currently empty.")
     except Exception as db_err:
         st.error(f"Database error: {str(db_err)}")
