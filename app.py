@@ -1,4 +1,4 @@
-import json  # FIXED: Added missing import
+import json
 import sqlite3
 from datetime import datetime
 from io import BytesIO
@@ -202,6 +202,8 @@ with tab_audit:
                     
                     st.success("Audit complete! Structural findings details down below:")
                     
-                    # FIXED: Flatted structural sequence. No contextual block indentation nesting here.
                     col1, col2 = st.columns(2)
                     col1.metric(label="Risk Status", value=str(analysis_result["agent_3_portfolio_recovery"]["risk_status"]))
+                    col2.metric(label="Liability Threshold", value=str(analysis_result["agent_3_portfolio_recovery"]["liability_cap_extracted"]))
+                    
+                    a1, a2, a3 = st.tabs([
