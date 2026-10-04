@@ -168,7 +168,6 @@ with tab_audit:
     clause_text = ""
     filename_to_save = "Direct Paste Input"
     
-    # FIXED: Comprehensive, non-truncating Try-Except File Parser Engine
     if uploaded_file is not None:
         filename_to_save = uploaded_file.name
         try:
@@ -201,10 +200,10 @@ with tab_audit:
                 try:
                     analysis_result = run_contract_audit(clause_text, api_key_input)
                     
-                    # FIXED: Aligned block indent structure
                     st.success("Audit complete! Structural findings details down below:")
                     
+                    # FIXED: One-line inline calls for metrics to guarantee closed brackets
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.metric(
-                            label="Risk Status", 
+                        st.metric(label="Risk Status", value=str(analysis_result["agent_3_portfolio_recovery"]["risk_status"]))
+                    with col2:
