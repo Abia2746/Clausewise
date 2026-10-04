@@ -9,7 +9,9 @@ import streamlit as st
 # Change Line 10 near the top of the file to this:
 # Change Line 11 to this exact string:
 # Change Line 11 to this to completely bypass the 429 lock:
-MODEL_NAME = "gemini-2.5-flash"
+# Update the model string handle to this:
+MODEL_NAME = "gemini-3.8-flash"
+
 
 
 
