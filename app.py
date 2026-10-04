@@ -197,9 +197,8 @@ with tab_audit:
                     
                     ag1 = results.get("agent_1_syntactic", {})
                     st.markdown("#### 🛑 Agent 1: Shari'ah Compliance & Indemnity Auditor")
-                    st.markdown(f"**Target:** {ag1.get('target')}")
-                    st.info(f"**Analysis:** {ag1.get('analysis')}")
+                    st.markdown(f"**Target:** {ag1.get('target', 'N/A')}")
+                    st.info(f"**Analysis:** {ag1.get('analysis', 'N/A')}")
                     
                     pb = ag1.get("playbook_positions", {})
-                    st.markdown(f"🟠 **Position A (Ideal AAOIFI Redline):** `{pb.get('position_a_ideal')}`")
-                    st.markdown(f"🔵 **Position B (Shari'ah Fallback):** `{pb.get('position_b_fallback')}`")
+                    st.markdown(f"🟠 **Position A (Ideal AAOIFI Redline):** `{pb.get('position_a_ideal', 'N/A')}`")
