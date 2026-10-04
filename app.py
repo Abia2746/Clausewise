@@ -11,11 +11,11 @@ import pandas as pd
 from pypdf import PdfReader
 import streamlit as st
 
-# SYSTEM CONFIGURATION
-MODEL_NAME = "gemini-2.5-flash"
+# SYSTEM CONFIGURATION - Updated to production-ready stable version
+MODEL_NAME = "gemini-1.5-flash"
 
 st.set_page_config(
-    page_title="Clausewise Enterprise — Contract Lifecycle Engine",
+    page_title="Clausewise Shari'ah Enterprise — Contract Lifecycle Engine",
     page_icon="◈",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -47,40 +47,40 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# GLOBAL INFRASTRUCTURE: MULTI-AGENT INFERENCE ENGINE
+# GLOBAL INFRASTRUCTURE: MULTI-AGENT INFERENCE ENGINE (AAOIFI Pivot)
 def run_contract_audit(contract_text: str, api_key: str) -> dict:
     client = genai.Client(api_key=api_key)
     system_prompt = """
-    You are an elite Senior Commercial Legal Engine acting strictly for the BUYER/LICENSEE.
+    You are an expert Islamic Finance Legal Auditor certified in AAOIFI Shari'ah Standards acting for the Buyer/Client.
     Analyze the contract text and return a JSON payload with this exact schema:
     {
       "agent_1_syntactic": {
-        "target": "Clause location and title",
-        "analysis": "Syntactic analysis of legal risk.",
-        "original_text": "Original clause snippet to be replaced",
+        "target": "Clause location, title, and identified Shari'ah non-compliance",
+        "analysis": "Provide a detailed Shari'ah compliance analysis. Specifically flag any instances of Riba (Interest), Gharar (Uncertainty), or non-compliant Dhaman (Ownership Risk allocation) according to AAOIFI rules.",
+        "original_text": "Original non-compliant clause snippet to be replaced",
         "playbook_positions": {
-          "position_a_ideal": "Aggressive buyer protection revision",
-          "position_b_fallback": "Balanced commercial fallback revision",
-          "position_c_walkaway": "Minimum acceptable threshold revision"
+          "position_a_ideal": "Aggressive AAOIFI-compliant revision (e.g., converting late interest into a mandatory late fee directed entirely to a verified charity fund, overseen by a Shari'ah board under AAOIFI Standard No. 3).",
+          "position_b_fallback": "Balanced Shari'ah fallback revision that satisfies commercial logic without violating Riba rules.",
+          "position_c_walkaway": "Minimum acceptable Shari'ah threshold contract text."
         }
       },
       "agent_2_cross_clause": {
-        "conflict": "Cross-clause conflict description",
-        "analysis": "Explanation of legal trap",
-        "redline_redirection": "Specific corrective text"
+        "conflict": "Cross-clause Shari'ah alignment issues (e.g., if one clause claims the deal is a Murabahah asset trade but another clause unlawfully forces asset risk onto the client before title transfer).",
+        "analysis": "Explanation of the regulatory or compliance trap under AAOIFI rules.",
+        "redline_redirection": "Specific corrective Shari'ah wording."
       },
       "agent_3_portfolio_recovery": {
-        "target": "Financial and operational terms",
-        "analysis": "Financial risk analysis",
-        "liability_cap_extracted": "Extracted liability threshold summary",
-        "payment_terms_extracted": "Extracted payment milestone summary",
-        "risk_status": "High, Medium, or Low"
+        "target": "Financial and structural terms",
+        "analysis": "Shari'ah asset and capital risk analysis",
+        "liability_cap_extracted": "Extracted risk limit / charity penalty thresholds",
+        "payment_terms_extracted": "Extracted payment framework (e.g., Murabahah cost-plus breakdown)",
+        "risk_status": "High (Contains Riba/Gharar), Medium (Minor structural variance), or Low (Fully AAOIFI Compliant)"
       },
       "pillar_5_obligation_registry": [
         {
           "clause": "Clause Reference",
-          "data": "Extracted timeline or numeric threshold",
-          "status": "Systemic Risk Tag"
+          "data": "Extracted timeline, interest rates flagged, or numeric thresholds",
+          "status": "CRITICAL SHARI'AH BREACH or VALID TRANSACTION MARGIN"
         }
       ]
     }
@@ -132,7 +132,7 @@ def create_native_tracked_changes_docx(deleted_text: str, inserted_text: str) ->
     return buffer
 
 # SIDEBAR TERMINAL LAYOUT
-st.sidebar.markdown("# ◈ Clausewise Enterprise")
+st.sidebar.markdown("# ◈ Clausewise Shari'ah")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 👤 Enterprise Workspace")
 st.sidebar.markdown("🛡️ **Zero Data Retention Active**")
@@ -141,9 +141,9 @@ st.sidebar.markdown("---")
 
 api_key_input = st.secrets.get("GEMINI_API_KEY", "")
 
-st.title("Automate Your Contract Risk Reviews")
+st.title("Automate Your Shari'ah Contract Risk Reviews")
 st.caption(
-    "100% Efficient Engine: Multi-format parsing, native MS Word tracked redlines, and persistent portfolio management."
+    "100% Efficient Engine: Native AAOIFI compliance verification, contract parsing, and automated portfolio management."
 )
 
 tab_audit, tab_repository = st.tabs(
@@ -156,12 +156,13 @@ with tab_audit:
         "Upload Contract (.pdf or .docx)", type=["pdf", "docx"]
     )
 
-    SAMPLE_CONTRACT = """MASTER SOFTWARE & SERVICES AGREEMENT
-2.3 Unilateral Engine Changes. Licensor retains the right to modify model endpoints at any time, provided throughput is unaffected.
-3.4 Overdue Balances. Invoice balances unpaid after 14 calendar days shall accrue interest at 4% per annum above the Bank of England base rate.
-4.2 Algorithmic Optimization Notice. The system architecture evaluates purely for administrative formatting and syntax risk; parameters disclaim all reliance on substantive legal functions.
-5.1 Standard Liability Cap. Total combined financial exposure shall be strictly limited to the total amount paid by Licensee in the 3 months preceding the claim.
-5.2 Third-Party Intellectual Property Protection. The Service Provider agrees to protect the Client from third-party copyright claims up to a limit of £50,000, notwithstanding any other damages, performance issues, or general contract failures arising from or related to this Agreement."""
+    # UPDATED MOCK CONTRACT SPECIFIC TO ISLAMIC FINANCE TRAPS
+    SAMPLE_CONTRACT = """ISLAMIC TRADE FACILITY & INVESTMENT AGREEMENT
+2.3 Asset Ownership Allocation. The Financier shall execute the purchase of the commodities from the supplier. However, the Client agrees that all risk of loss, damage, or destruction of the commodities passes completely to the Client upon the supplier dispatching the goods, prior to the execution of the separate cost-plus Murabahah sale contract.
+3.4 Overdue Balances and Default. Invoice balances remaining unpaid after 14 calendar days shall accrue default interest at a rate of 4% per annum above the Bank of England base rate until full payment is recovered by the bank.
+4.2 Delivery and Price Adjustments. The final delivery price of the underlying transactional assets shall fluctuate dynamically based on subsequent market conditions, to be determined solely at the discretion of the vendor at the time of delivery without prior fixed margin caps.
+5.1 Standard Liability Cap. Total combined financial exposure of the bank shall be strictly limited to the total amount paid by the client in the 3 months preceding the claim.
+5.2 Third-Party Intellectual Property Protection. The Service Provider agrees to protect the Client from third-party copyright claims up to a limit of £50,000, notwithstanding any other damages or transactional variances."""
 
     clause_text = ""
     filename_to_save = "Direct Paste Input"
@@ -189,90 +190,16 @@ with tab_audit:
         elif not api_key_input:
             st.error("🔑 API Key Missing: Ensure GEMINI_API_KEY is configured in your Streamlit secrets.")
         else:
-            with st.spinner("Executing Multi-Agent Syntactic Mesh..."):
+            with st.spinner("Executing Multi-Agent Shari'ah Compliance Mesh..."):
                 try:
                     results = run_contract_audit(clause_text, api_key_input)
                     st.success("Audit Complete!")
                     st.markdown("### 📊 LIVE INTERACTIVE NEGOTIATION DESK")
                     
                     ag1 = results.get("agent_1_syntactic", {})
-                    ag2 = results.get("agent_2_cross_clause", {})
-                    ag3 = results.get("agent_3_portfolio_recovery", {})
-                    obligations = results.get("pillar_5_obligation_registry", [])
-
-                    # Persist run to SQLite repository
-                    cursor.execute(
-                        """
-                        INSERT INTO contracts (filename, audit_date, liability_cap, payment_terms, risk_status)
-                        VALUES (?, ?, ?, ?, ?)
-                        """,
-                        (
-                            filename_to_save,
-                            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                            ag3.get("liability_cap_extracted", "N/A"),
-                            ag3.get("payment_terms_extracted", "N/A"),
-                            ag3.get("risk_status", "Low"),
-                        ),
-                    )
-                    conn.commit()
-
-                    res_tab1, res_tab2, res_tab3 = st.tabs([
-                        "🔍 Syntactic Risk & Redlines", 
-                        "⚡ Cross-Clause Conflicts", 
-                        "📋 Operational Registry"
-                    ])
-
-                    with res_tab1:
-                        st.subheader(f"Target: {ag1.get('target', 'N/A')}")
-                        st.markdown(f"**Risk Analysis:** {ag1.get('analysis', 'N/A')}")
-                        st.text_area("Original Text Snippet:", value=ag1.get('original_text', ''), disabled=True, key="orig_text_area")
-                        
-                        st.markdown("#### Playbook Revision Strategies")
-                        pos = ag1.get("playbook_positions", {})
-                        st.info(f"**Ideal Position (Aggressive Buyer):** {pos.get('position_a_ideal', 'N/A')}")
-                        st.warning(f"**Fallback Position (Balanced Commercial):** {pos.get('position_b_fallback', 'N/A')}")
-                        st.error(f"**Walkaway Threshold:** {pos.get('position_c_walkaway', 'N/A')}")
-                        
-                        st.markdown("#### 📄 Generate Redlined Tracked Changes File")
-                        chosen_revision = st.selectbox(
-                            "Select target strategy to embed in track changes:",
-                            ["position_a_ideal", "position_b_fallback"],
-                            key="strategy_select"
-                        )
-                        inserted_text_target = pos.get(chosen_revision, "")
-                        
-                        docx_buffer = create_native_tracked_changes_docx(
-                            ag1.get('original_text', ''),
-                            inserted_text_target
-                        )
-                        
-                        st.download_button(
-                            label="📥 Download Tracked Redline (.docx)",
-                            data=docx_buffer,
-                            file_name=f"Redline_{filename_to_save}.docx",
-                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        )
-
-                    with res_tab2:
-                        st.subheader("Cross-Clause Conflict Analysis")
-                        st.warning(f"**Conflict Identified:** {ag2.get('conflict', 'None')}")
-                        st.markdown(f"**Legal Trap Analysis:** {ag2.get('analysis', 'N/A')}")
-                        st.code(ag2.get('redline_redirection', 'No redirection available.'), language="text")
-
-                    with res_tab3:
-                        st.subheader("Extracted Obligations & Milestones")
-                        if obligations:
-                            st.dataframe(pd.DataFrame(obligations), use_container_width=True)
-                        else:
-                            st.write("No operational obligations tagged.")
-
-                except Exception as e:
-                    st.error(f"An error occurred during processing: {str(e)}")
-
-with tab_repository:
-    st.markdown("### 🗄️ Enterprise Portfolio Repository")
-    df = pd.read_sql_query("SELECT * FROM contracts ORDER BY id DESC", conn)
-    if not df.empty:
-        st.dataframe(df, use_container_width=True)
-    else:
-        st.info("No contracts logged in repository yet. Run an audit to populate.")
+                    st.markdown(f"#### 🛑 Agent 1: Shari'ah Compliance & Indemnity Auditor")
+                    st.markdown(f"**Target:** {ag1.get('target')}")
+                    st.info(f"**Analysis:** {ag1.get('analysis')}")
+                    
+                    pb = ag1.get("playbook_positions", {})
+                    st.markdown(f"🟠 **Position A (Ideal AAOIFI Redline):** `{pb.get('position_a_ideal')}`")
