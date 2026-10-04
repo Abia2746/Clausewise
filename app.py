@@ -7,7 +7,9 @@ from google.genai import types
 import streamlit as st
 
 # Change Line 10 near the top of the file to this:
-MODEL_NAME = "gemini-2.5-pro"
+# Change Line 11 to this exact string:
+MODEL_NAME = "gemini-3.1-pro-preview"
+
 
 st.set_page_config(page_title="Clausewise Shari'ah Engine", layout="wide")
 
