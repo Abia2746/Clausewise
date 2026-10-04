@@ -8,6 +8,8 @@ import streamlit as st
 
 MODEL_NAME = "gemini-1.5-flash"
 st.set_page_config(page_title="Clausewise Shari'ah Engine", layout="wide")
+# Change Line 11 to this:
+MODEL_NAME = "gemini-2.5-flash"
 
 # DATABASE
 conn = sqlite3.connect("contract_repository.db", check_same_thread=False)
