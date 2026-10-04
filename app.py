@@ -6,7 +6,9 @@ from google import genai
 from google.genai import types
 import streamlit as st
 
-MODEL_NAME = "gemini-2.5-flash"
+# Change Line 10 near the top of the file to this:
+MODEL_NAME = "gemini-2.5-pro"
+
 st.set_page_config(page_title="Clausewise Shari'ah Engine", layout="wide")
 
 # DATABASE
