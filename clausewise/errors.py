@@ -13,6 +13,11 @@ class AuthError(ClauseWiseError):
     pass
 
 
+class PermissionDenied(ClauseWiseError):
+    """Raised when an operation is not permitted for the user/tenant."""
+    pass
+
+
 class ProviderError(ClauseWiseError):
     """Raised when an LLM provider fails or returns an error."""
     pass
