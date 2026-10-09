@@ -138,3 +138,14 @@ def get_default_provider() -> LLMProvider:
     if provider_name == "openai" or os.getenv("OPENAI_API_KEY") and not os.getenv("ANTHROPIC_API_KEY"):
         return OpenAIProvider()
     return AnthropicProvider()
+
+
+def provider_health() -> dict[str, Any]:
+    """Check connectivity and credentials status for active providers."""
+    anthropic_ok = bool(os.getenv("ANTHROPIC_API_KEY"))
+    openai_ok = bool(os.getenv("OPENAI_API_KEY"))
+    return {
+        "anthropic_configured": anthropic_ok,
+        "openai_configured": openai_ok,
+        "default": "openai" if openai_ok and not anthropic_ok else "anthropic",
+    }
