@@ -1,51 +1,70 @@
-"""Plan definitions, features, seat quotas, and time utilities for authorization."""
+"""Document extraction, parsing, and text chunking utilities."""
 
 from __future__ import annotations
 
 __all__ = [
-    "Plan",
-    "Feature",
-    "utcnow",
-    "check_seat_quota",
-    "get_plan",
-    "plan_allows",
+    "Chunk",
+    "extract_text",
+    "chunk_text",
 ]
 
-from datetime import datetime, timezone
-from enum import Enum
+from dataclasses import dataclass, field
 from typing import Any, Optional
 
 
-class Plan(str, Enum):
-    """Supported subscription tiers."""
-    FREE = "free"
-    PRO = "pro"
-    ENTERPRISE = "enterprise"
+@dataclass
+class Chunk:
+    """A segment of extracted document text for auditing."""
+    text: str
+    index: int = 0
+    page_number: Optional[int] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class Feature(str, Enum):
-    """Gated features within the application."""
-    ADVANCED_AUDIT = "advanced_audit"
-    UNLIMITED_DOCS = "unlimited_docs"
-    EXPORT_REPORTS = "export_reports"
-    API_ACCESS = "api_access"
+def extract_text(file_content: bytes, mime_type: str) -> str:
+    """Extract plain text from uploaded document bytes (PDF, DOCX, text)."""
+    if not file_content:
+        return ""
+    
+    # Try parsing based on mime type or fallback to string decoding
+    try:
+        if mime_type == "application/pdf":
+            import pypdf
+            import io
+            reader = pypdf.PdfReader(io.BytesIO(file_content))
+            return "\n".join([page.extract_text() or "" for page in reader.pages])
+        elif mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+            import docx
+            import io
+            doc = docx.Document(io.BytesIO(file_content))
+            return "\n".join([para.text for para in doc.paragraphs])
+    except Exception:
+        pass
+
+    # Generic fallback
+    try:
+        return file_content.decode("utf-8", errors="ignore")
+    except Exception:
+        return ""
 
 
-def utcnow() -> datetime:
-    """Return current timezone-aware UTC datetime."""
-    return datetime.now(timezone.utc)
+def chunk_text(text: str, chunk_size: int = 4000, overlap: int = 200) -> list[Chunk]:
+    """Split text into manageable chunks with overlap."""
+    if not text:
+        return []
+    
+    chunks = []
+    start = 0
+    length = len(text)
+    index = 0
 
+    while start < length:
+        end = min(start + chunk_size, length)
+        chunk_str = text[start:end]
+        chunks.append(Chunk(text=chunk_str, index=index))
+        if end == length:
+            break
+        start = end - overlap
+        index += 1
 
-def check_seat_quota(user_id: str, organization_id: Optional[str] = None) -> bool:
-    """Check if an organization or user has available seats."""
-    return True
-
-
-def get_plan(tenant_or_user: Any = None) -> Plan:
-    """Return the subscription plan for a given tenant or user."""
-    return Plan.PRO
-
-
-def plan_allows(plan: Plan | str, feature: Feature | str) -> bool:
-    """Check if a plan has access to a specific feature."""
-    return True
+    return chunks
