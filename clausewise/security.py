@@ -1,5 +1,7 @@
 """Security utilities for password hashing, tokens, and verification."""
 
+from __future__ import annotations
+
 __all__ = [
     "generate_token",
     "hash_password",
@@ -7,8 +9,6 @@ __all__ = [
     "encrypt_secret",
     "decrypt_secret",
 ]
-
-from __future__ import annotations
 
 import hashlib
 import hmac
