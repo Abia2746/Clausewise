@@ -8,6 +8,11 @@ class ClauseWiseError(Exception):
     pass
 
 
+class AuthError(ClauseWiseError):
+    """Raised when authentication or token validation fails."""
+    pass
+
+
 class ProviderError(ClauseWiseError):
     """Raised when an LLM provider fails or returns an error."""
     pass
