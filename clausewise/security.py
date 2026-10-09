@@ -7,6 +7,7 @@ __all__ = [
     "new_token",
     "hash_password",
     "verify_password",
+    "password_problems",
     "encrypt_secret",
     "decrypt_secret",
 ]
@@ -45,6 +46,14 @@ def verify_password(stored_password: str, provided_password: str) -> bool:
         return hmac.compare_digest(pwd_hash, new_hash)
     except (ValueError, AttributeError):
         return False
+
+
+def password_problems(password: str) -> list[str]:
+    """Check a password for policy issues and return a list of problems."""
+    problems = []
+    if not password or len(password) < 8:
+        problems.append("Password must be at least 8 characters long.")
+    return problems
 
 
 def encrypt_secret(plain_text: str) -> str:
