@@ -8,7 +8,6 @@ from enum import Enum
 from typing import Optional
 
 
-# Self-contained exceptions to eliminate any circular import risk
 class FeatureLocked(Exception):
     def __init__(self, message: str, feature: Optional[str] = None, upgrade_target: Optional[str] = None):
         super().__init__(message)
@@ -193,6 +192,36 @@ def get_spec(plan: str | Plan) -> PlanSpec:
 def plan_allows(plan: str | Plan, feature: Feature | str) -> bool:
     feature = Feature(feature) if isinstance(feature, str) else feature
     return get_plan(plan).allows(feature)
+
+
+def enforce_feature(plan: str | Plan, feature: Feature | str, audit_count: Optional[int] = None) -> None:
+    feature = Feature(feature) if isinstance(feature, str) else feature
+    spec = get_plan(plan)
+    if spec.allows(feature):
+        return
+    target = spec.upgrade_target
+    target_spec = get_plan(target) if target else None
+    human = feature.value.replace("_", " ")
+    message = f"{human.title()} is not included in the {spec.label} plan."
+    if target_spec:
+        if target_spec.price_monthly:
+            message += f" {target_spec.label} adds it from ${target_spec.price_monthly:,.0f}/month."
+        else:
+            message += f" {target_spec.label} adds it — talk to us."
+    raise FeatureLocked(message, feature=feature.value, upgrade_target=target.value if target else None)
+
+
+def check_seat_quota(plan: str | Plan, active_seats: int) -> None:
+    spec = get_plan(plan)
+    if active_seats < spec.seats:
+        return
+    target = spec.upgrade_target
+    message = f"{spec.label} includes {spec.seats} seat(s)."
+    if target:
+        message += f" Move to {get_plan(target).label} to add more reviewers."
+    else:
+        message += " Contact us to add seats."
+    raise QuotaExceeded(message, upgrade_target=target.value if target else None, limit=spec.seats, used=active_seats)
 
 
 def utcnow() -> datetime:
