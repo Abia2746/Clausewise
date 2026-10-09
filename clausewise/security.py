@@ -4,6 +4,7 @@ from __future__ import annotations
 
 __all__ = [
     "generate_token",
+    "new_token",
     "hash_password",
     "verify_password",
     "encrypt_secret",
@@ -18,6 +19,11 @@ import secrets
 def generate_token(length: int = 32) -> str:
     """Generate a secure random URL-safe token."""
     return secrets.token_urlsafe(length)
+
+
+def new_token(length: int = 32) -> str:
+    """Alias for generate_token."""
+    return generate_token(length)
 
 
 def hash_password(password: str) -> str:
