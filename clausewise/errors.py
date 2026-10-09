@@ -28,6 +28,10 @@ class RateLimitError(ProviderError):
     pass
 
 
+# Alias for compatibility with modules importing RateLimited
+RateLimited = RateLimitError
+
+
 class DocumentTooLarge(ClauseWiseError):
     """Raised when an uploaded document exceeds size limits."""
     pass
