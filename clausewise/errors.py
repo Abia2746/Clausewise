@@ -3,22 +3,26 @@
 from __future__ import annotations
 
 
-class ClauseWiseError(Exception):
+class ClausewiseError(Exception):
     """Base exception for all Clausewise errors."""
     pass
 
 
-class AuthError(ClauseWiseError):
+# Alias for compatibility if any module expects ClauseWiseError
+ClauseWiseError = ClausewiseError
+
+
+class AuthError(ClausewiseError):
     """Raised when authentication or token validation fails."""
     pass
 
 
-class PermissionDenied(ClauseWiseError):
+class PermissionDenied(ClausewiseError):
     """Raised when an operation is not permitted for the user/tenant."""
     pass
 
 
-class ProviderError(ClauseWiseError):
+class ProviderError(ClausewiseError):
     """Raised when an LLM provider fails or returns an error."""
     pass
 
@@ -28,26 +32,25 @@ class RateLimitError(ProviderError):
     pass
 
 
-# Alias for compatibility with modules importing RateLimited
 RateLimited = RateLimitError
 
 
-class DocumentTooLarge(ClauseWiseError):
+class DocumentTooLarge(ClausewiseError):
     """Raised when an uploaded document exceeds size limits."""
     pass
 
 
-class ExtractionFailed(ClauseWiseError):
+class ExtractionFailed(ClausewiseError):
     """Raised when text extraction from a file fails."""
     pass
 
 
-class UnsupportedDocument(ClauseWiseError):
+class UnsupportedDocument(ClausewiseError):
     """Raised when the document MIME type is not supported."""
     pass
 
 
-class FeatureLocked(ClauseWiseError):
+class FeatureLocked(ClausewiseError):
     """Raised when a feature requires a higher tier plan."""
     def __init__(self, message: str, feature: str | None = None, upgrade_target: str | None = None):
         super().__init__(message)
@@ -55,7 +58,7 @@ class FeatureLocked(ClauseWiseError):
         self.upgrade_target = upgrade_target
 
 
-class QuotaExceeded(ClauseWiseError):
+class QuotaExceeded(ClausewiseError):
     """Raised when a usage quota is exhausted."""
     def __init__(self, message: str, upgrade_target: str | None = None, limit: int | None = None, used: int | None = None):
         super().__init__(message)
