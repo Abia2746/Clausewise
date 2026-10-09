@@ -16,6 +16,23 @@ from .errors import ProviderError, RateLimitError
 
 
 @dataclass
+class ProviderUsage:
+    """Tracks token usage and cost for provider calls."""
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    cost_usd: float = 0.0
+    requests: int = 0
+
+    def accumulate(self, input_tok: int = 0, output_tok: int = 0, cost: float = 0.0) -> None:
+        self.input_tokens += input_tok
+        self.output_tokens += output_tok
+        self.total_tokens += (input_tok + output_tok)
+        self.cost_usd += cost
+        self.requests += 1
+
+
+@dataclass
 class LLMResponse:
     text: str
     model: str
