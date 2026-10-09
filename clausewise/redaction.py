@@ -6,12 +6,12 @@ personal data stripped." This module is that answer, and it is applied before
 any provider call.
 
 Design constraints:
-- **Reversible within the process only.** The mapping never leaves memory, so a
-leaked prompt cannot be re-identified from stored state.
-- **Deterministic.** Same input -> same placeholders, so caching by content hash
-still works and two runs of the same document are comparable.
-- **Conservative.** When unsure, redact. A redaction costs a little context; a
-leaked IBAN costs the account.
+* **Reversible within the process only.** The mapping never leaves memory, so a
+  leaked prompt cannot be re-identified from stored state.
+* **Deterministic.** Same input -> same placeholders, so caching by content hash
+  still works and two runs of the same document are comparable.
+* **Conservative.** When unsure, redact. A redaction costs a little context; a
+  leaked IBAN costs the account.
 """
 
 from __future__ import annotations
@@ -38,52 +38,97 @@ PATTERNS: list[tuple[str, str, int]] = [
     ("CRYPTO", r"\b(?:0x[a-fA-F0-9]{40}|bc1[a-z0-9]{25,62})\b", 0),
     ("CARD", r"\b(?:\d[ -]?){13,19}\b", 0),
     ("ACCOUNT_NO", r"\b(?:account|a/c|acct)\s*(?:no\.?|number|#)?\s*[:\-]?\s*\d{6,20}\b", _I),
-    ("REG_NO", r"\b(?:company|registration|commercial)\s*(?:no\.?|number|#)\s*[:\-]?\s*[A-Z0-9\-]{5,15}\b", _I),
+    ("REG_NO", r"\b(?:company|registration|commercial)\s*(?:no\.?|number|#)\s*[:\-]?\s*[\w\-/]{4,20}\b", _I),
 ]
+
+_COMPILED: list[tuple[str, re.Pattern]] = [
+    (name, re.compile(rx, flags)) for name, rx, flags in PATTERNS
+]
+
+# Deliberately NOT redacted: amounts, dates, clause numbers, rates and standard
+# references — the Shari'ah analysis depends on them, and they are not personal
+# data. Over-redaction is as damaging as under-redaction here.
 
 @dataclass
 class RedactionResult:
     text: str
-    redactions_count: int
-    categories: dict[str, int] = field(default_factory=dict)
-    vault: dict[str, str] = field(default_factory=dict)
+    counts: dict[str, int] = field(default_factory=dict)
 
-def redact_text(text: str) -> RedactionResult:
+    @property
+    def total(self) -> int:
+        return sum(self.counts.values())
+
+    @property
+    def applied(self) -> bool:
+        return self.total > 0
+
+    def summary(self) -> str:
+        if not self.applied:
+            return "No personal data detected."
+        parts = [f"{count} {name.lower().replace('_', ' ')}" for name, count in sorted(self.counts.items())]
+        return "Redacted " + ", ".join(parts) + " before analysis."
+
+class _Vault:
+    """Process-local, per-redaction placeholder vault. Never persisted."""
+
+    def __init__(self) -> None:
+        self._map: dict[str, str] = {}
+        self._counters: dict[str, int] = {}
+
+    def placeholder(self, kind: str, original: str) -> str:
+        key = f"{kind}:{original}"
+        if key in self._map:
+            return self._map[key]
+        self._counters[kind] = self._counters.get(kind, 0) + 1
+        token = f"[{kind}_{self._counters[kind]}]"
+        self._map[key] = token
+        return token
+
+    def restore(self, text: str) -> str:
+        out = text
+        for key, token in self._map.items():
+            kind, original = key.split(":", 1)
+            out = out.replace(token, original)
+        return out
+
+    def __len__(self) -> int:
+        return len(self._map)
+
+def redact(text: str) -> RedactionResult:
     if not text:
-        return RedactionResult(text="", redactions_count=0)
+        return RedactionResult(text="", counts={})
 
-    vault: dict[str, str] = {}
-    reverse_vault: dict[str, str] = {}
+    vault = _Vault()
     counts: dict[str, int] = {}
-    total = 0
-    cleaned = text
+    working = text
 
-    for cat, pattern, flags in PATTERNS:
-        matches = list(re.finditer(pattern, cleaned, flags=flags))
-        for match in reversed(matches):
-            val = match.group(0)
-            if val in reverse_vault:
-                placeholder = reverse_vault[val]
-            else:
-                counts[cat] = counts.get(cat, 0) + 1
-                placeholder = f"[{cat}_{counts[cat]}]"
-                reverse_vault[val] = placeholder
-                vault[placeholder] = val
-                total += 1
-            start, end = match.span()
-            cleaned = cleaned[:start] + placeholder + cleaned[end:]
+    for name, pattern in _COMPILED:
+        def _sub(match: re.Match, _name: str = name) -> str:
+            counts[_name] = counts.get(_name, 0) + 1
+            return vault.placeholder(_name, match.group(0))
 
-    return RedactionResult(
-        text=cleaned,
-        redactions_count=total,
-        categories=counts,
-        vault=vault,
-    )
+        working = pattern.sub(_sub, working)
 
-def restore_text(text: str, vault: dict[str, str]) -> str:
-    if not text or not vault:
-        return text
-    restored = text
-    for placeholder, original in vault.items():
-        restored = restored.replace(placeholder, original)
-    return restored
+    return RedactionResult(text=working, counts=counts)
+
+def redact_with_vault(text: str) -> tuple[RedactionResult, _Vault]:
+    """Same as `redact` but returns the vault, for restoring model output.
+
+    The engine redacts before the model call and restores the original values in
+    the returned findings, so a consultant sees real counterparty names while
+    the provider never did.
+    """
+    if not text:
+        return RedactionResult(text="", counts={}), _Vault()
+
+    vault = _Vault()
+    counts: dict[str, int] = {}
+    working = text
+    for name, pattern in _COMPILED:
+        def _sub(match: re.Match, _name: str = name) -> str:
+            counts[_name] = counts.get(_name, 0) + 1
+            return vault.placeholder(_name, match.group(0))
+
+        working = pattern.sub(_sub, working)
+
+    return RedactionResult(text=working, counts=counts), vault
