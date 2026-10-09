@@ -31,10 +31,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-
 def _uuid() -> str:
     return uuid.uuid4().hex
-
 
 def _now() -> datetime:
     """Naive UTC.
@@ -45,17 +43,14 @@ def _now() -> datetime:
     """
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
-
 class Base(DeclarativeBase):
     pass
-
 
 class TimestampMixin:
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_now, onupdate=_now, nullable=False
     )
-
 
 # =============================================================== tenancy & identity
 class Tenant(Base, TimestampMixin):
@@ -94,7 +89,6 @@ class Tenant(Base, TimestampMixin):
 
     users: Mapped[list["User"]] = relationship(back_populates="tenant", cascade="all, delete-orphan")
 
-
 class User(Base, TimestampMixin):
     __tablename__ = "users"
     __table_args__ = (UniqueConstraint("tenant_id", "email", name="uq_user_tenant_email"),)
@@ -117,7 +111,6 @@ class User(Base, TimestampMixin):
 
     tenant: Mapped["Tenant"] = relationship(back_populates="users")
 
-
 class SessionToken(Base):
     """Server-side sessions. The browser only ever holds an opaque token hash."""
 
@@ -131,7 +124,6 @@ class SessionToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
     ip_address: Mapped[Optional[str]] = mapped_column(String(64))
     user_agent: Mapped[Optional[str]] = mapped_column(String(300))
-
 
 class ApiKey(Base):
     """Metered programmatic access — the stickiest revenue line in the product."""
@@ -149,7 +141,6 @@ class ApiKey(Base):
     last_used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
-
 
 # =============================================================== standards registry
 class StandardLibrary(Base, TimestampMixin):
@@ -177,7 +168,6 @@ class StandardLibrary(Base, TimestampMixin):
         back_populates="library", cascade="all, delete-orphan"
     )
 
-
 class StandardEntry(Base):
     __tablename__ = "standard_entries"
     __table_args__ = (Index("ix_standard_lib_key", "library_id", "standard_id"),)
@@ -201,7 +191,6 @@ class StandardEntry(Base):
 
     library: Mapped["StandardLibrary"] = relationship(back_populates="entries")
 
-
 # ==================================================================== documents
 class Contract(Base, TimestampMixin):
     __tablename__ = "contracts"
@@ -223,7 +212,6 @@ class Contract(Base, TimestampMixin):
     extraction_warnings: Mapped[Optional[dict]] = mapped_column(JSON)
     retention_expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), index=True)
     deleted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
-
 
 class Audit(Base, TimestampMixin):
     """One review run. This row is the product's unit of record."""
@@ -253,3 +241,164 @@ class Audit(Base, TimestampMixin):
     risk_score: Mapped[float] = mapped_column(Float, default=0.0)
     findings_total: Mapped[int] = mapped_column(Integer, default=0)
     findings_critical: Mapped[int] = mapped_column(Integer, default=0)
+    findings_high: Mapped[int] = mapped_column(Integer, default=0)
+    findings_medium: Mapped[int] = mapped_column(Integer, default=0)
+    findings_advisory: Mapped[int] = mapped_column(Integer, default=0)
+    findings_referred: Mapped[int] = mapped_column(Integer, default=0)  # citation failed -> board
+    confidence: Mapped[float] = mapped_column(Float, default=0.0)
+    needs_human_review: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    review_reason: Mapped[Optional[str]] = mapped_column(String(300))
+
+    chunks_total: Mapped[int] = mapped_column(Integer, default=0)
+    chunks_failed: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_in: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_out: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    latency_ms: Mapped[int] = mapped_column(Integer, default=0)
+    cache_hit: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    idempotency_key: Mapped[Optional[str]] = mapped_column(String(120), index=True)
+
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+
+    # reviewer workflow
+    remediation_status: Mapped[str] = mapped_column(String(30), default="open", index=True)
+    signed_off_by: Mapped[Optional[str]] = mapped_column(ForeignKey("users.id"))
+    signed_off_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    signoff_note: Mapped[str] = mapped_column(Text, default="")
+
+    report_path: Mapped[Optional[str]] = mapped_column(String(400))
+    report_sha256: Mapped[Optional[str]] = mapped_column(String(64))
+    error: Mapped[Optional[str]] = mapped_column(Text)
+
+    contract: Mapped["Contract"] = relationship()
+    findings: Mapped[list["Finding"]] = relationship(
+        back_populates="audit", cascade="all, delete-orphan", order_by="Finding.ordinal"
+    )
+
+class Finding(Base):
+    """A single clause-level observation. Never stored without a rationale."""
+
+    __tablename__ = "findings"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    audit_id: Mapped[str] = mapped_column(ForeignKey("audits.id"), nullable=False, index=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    ordinal: Mapped[int] = mapped_column(Integer, default=0)
+
+    clause_ref: Mapped[str] = mapped_column(String(120), default="")
+    clause_excerpt: Mapped[str] = mapped_column(Text, default="")
+    issue_type: Mapped[str] = mapped_column(String(60), default="OTHER", index=True)
+    severity: Mapped[str] = mapped_column(String(20), default="medium", index=True)
+    standard_id: Mapped[Optional[str]] = mapped_column(String(40))
+    standard_title: Mapped[str] = mapped_column(String(300), default="")
+    citation_ref: Mapped[str] = mapped_column(String(200), default="")
+    citation_status: Mapped[str] = mapped_column(String(30), default="uncited")
+    rationale: Mapped[str] = mapped_column(Text, default="")
+    remedial_wording: Mapped[str] = mapped_column(Text, default="")
+    confidence: Mapped[float] = mapped_column(Float, default=0.0)
+    needs_human_review: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    detected_by: Mapped[str] = mapped_column(String(20), default="model")  # model|rule
+    reviewer_disposition: Mapped[Optional[str]] = mapped_column(String(30))
+
+    audit: Mapped["Audit"] = relationship(back_populates="findings")
+
+# ============================================================ metering & governance
+class UsageEvent(Base):
+    """Append-only metering ledger. Quotas and invoices read from here."""
+
+    __tablename__ = "usage_events"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    user_id: Mapped[Optional[str]] = mapped_column(ForeignKey("users.id"))
+    kind: Mapped[str] = mapped_column(String(40), nullable=False, index=True)  # audit|export|api_call|batch
+    quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    audit_id: Mapped[Optional[str]] = mapped_column(String(32))
+    billed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    meta: Mapped[Optional[dict]] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False, index=True)
+
+class AuditLogEntry(Base):
+    """Security and compliance trail. Banks ask for this in the first call."""
+
+    __tablename__ = "audit_log"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    tenant_id: Mapped[Optional[str]] = mapped_column(String(32), index=True)
+    actor_user_id: Mapped[Optional[str]] = mapped_column(String(32))
+    actor_label: Mapped[str] = mapped_column(String(200), default="")
+    action: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    object_type: Mapped[str] = mapped_column(String(40), default="")
+    object_id: Mapped[str] = mapped_column(String(64), default="")
+    ip_address: Mapped[str] = mapped_column(String(64), default="")
+    user_agent: Mapped[str] = mapped_column(String(300), default="")
+    meta: Mapped[Optional[dict]] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False, index=True)
+
+class Job(Base, TimestampMixin):
+    """Batch / portfolio review. Lets the API and worker share one queue."""
+
+    __tablename__ = "jobs"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    created_by: Mapped[Optional[str]] = mapped_column(ForeignKey("users.id"))
+    kind: Mapped[str] = mapped_column(String(40), default="batch_audit")
+    status: Mapped[str] = mapped_column(String(20), default="queued", nullable=False, index=True)
+    library_id: Mapped[Optional[str]] = mapped_column(String(32))
+    payload: Mapped[Optional[dict]] = mapped_column(JSON)
+    total: Mapped[int] = mapped_column(Integer, default=0)
+    processed: Mapped[int] = mapped_column(Integer, default=0)
+    failed: Mapped[int] = mapped_column(Integer, default=0)
+    result: Mapped[Optional[dict]] = mapped_column(JSON)
+    error: Mapped[Optional[str]] = mapped_column(Text)
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+
+class JobItem(Base):
+    __tablename__ = "job_items"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id"), nullable=False, index=True)
+    contract_id: Mapped[str] = mapped_column(String(32), nullable=False)
+    audit_id: Mapped[Optional[str]] = mapped_column(String(32))
+    status: Mapped[str] = mapped_column(String(20), default="queued", nullable=False, index=True)
+    error: Mapped[Optional[str]] = mapped_column(Text)
+
+# ================================================================= audit helpers
+class AuditCache(Base):
+    """Identical-document reuse. Never charge a client twice for the same file."""
+
+    __tablename__ = "audit_cache"
+    __table_args__ = (
+        UniqueConstraint(
+            "tenant_id", "content_sha256", "prompt_version", "standards_version", "library_id",
+            name="uq_audit_cache_key",
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), nullable=False, index=True)
+    content_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    prompt_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    standards_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    library_id: Mapped[str] = mapped_column(String(32), default="global")
+    audit_id: Mapped[str] = mapped_column(String(32), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False)
+
+class LeadCapture(Base):
+    """Conversion instrument: every paywall hit and demo request is a lead."""
+
+    __tablename__ = "leads"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_uuid)
+    email: Mapped[str] = mapped_column(String(255), index=True)
+    full_name: Mapped[str] = mapped_column(String(200), default="")
+    company: Mapped[str] = mapped_column(String(200), default="")
+    segment: Mapped[str] = mapped_column(String(60), default="")
+    intent: Mapped[str] = mapped_column(String(40), default="demo_request")  # demo_request|upgrade|quote
+    blocker: Mapped[str] = mapped_column(String(80), default="")  # which feature/quota triggered it
+    message: Mapped[str] = mapped_column(Text, default="")
+    tenant_id: Mapped[Optional[str]] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, nullable=False, index=True)
