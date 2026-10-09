@@ -8,7 +8,6 @@ class ClausewiseError(Exception):
     pass
 
 
-# Alias for compatibility if any module expects ClauseWiseError
 ClauseWiseError = ClausewiseError
 
 
@@ -19,6 +18,11 @@ class AuthError(ClausewiseError):
 
 class PermissionDenied(ClausewiseError):
     """Raised when an operation is not permitted for the user/tenant."""
+    pass
+
+
+class AuditRefused(ClausewiseError):
+    """Raised when an audit is refused due to policy or state."""
     pass
 
 
