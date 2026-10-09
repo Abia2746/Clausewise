@@ -1,5 +1,28 @@
-streamlit
-google-genai
-pandas
-python-docx
-pypdf
+# ---------------------------------------------------------------- core runtime
+streamlit>=1.40
+sqlalchemy>=2.0
+pydantic>=2.7
+python-dotenv>=1.0
+pypdf>=4.2
+python-docx>=1.1
+reportlab>=4.2
+pandas>=2.2
+
+# ------------------------------------------------------------------- LLM layer
+# Gemini is the default provider. The provider interface is vendor-agnostic;
+# see clausewise/providers.py for the OpenAI-compatible / in-region / on-prem path.
+google-genai>=1.0
+
+# ------------------------------------------------------------------ API surface
+fastapi>=0.111
+uvicorn[standard]>=0.30
+httpx>=0.27
+
+# ---------------------------------------------------------------------- billing
+stripe>=10.0
+
+# -------------------------------------------------------------------- security
+cryptography>=42.0
+
+# ----------------------------------------------------------------------- tests
+pytest>=8.0
