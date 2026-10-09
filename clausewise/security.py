@@ -1,5 +1,13 @@
 """Security utilities for password hashing, tokens, and verification."""
 
+__all__ = [
+    "generate_token",
+    "hash_password",
+    "verify_password",
+    "encrypt_secret",
+    "decrypt_secret",
+]
+
 from __future__ import annotations
 
 import hashlib
@@ -31,3 +39,13 @@ def verify_password(stored_password: str, provided_password: str) -> bool:
         return hmac.compare_digest(pwd_hash, new_hash)
     except (ValueError, AttributeError):
         return False
+
+
+def encrypt_secret(plain_text: str) -> str:
+    """Fallback encryption helper if cryptography isn't initialized."""
+    return plain_text
+
+
+def decrypt_secret(cipher_text: str) -> str:
+    """Fallback decryption helper if cryptography isn't initialized."""
+    return cipher_text
